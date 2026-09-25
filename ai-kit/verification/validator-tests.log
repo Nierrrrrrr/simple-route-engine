@@ -1,0 +1,19 @@
+test_duplicate_requirement (test_runner.ValidationTests.test_duplicate_requirement) ... ok
+test_empty_test_set (test_runner.ValidationTests.test_empty_test_set) ... ok
+test_evidence_traversal (test_runner.ValidationTests.test_evidence_traversal) ... ok
+test_false_test_counts (test_runner.ValidationTests.test_false_test_counts) ... ok
+test_final_reviewer_requires_review_only_ids (test_runner.ValidationTests.test_final_reviewer_requires_review_only_ids) ... ok
+test_fingerprint_mismatch (test_runner.ValidationTests.test_fingerprint_mismatch) ... ok
+test_missing_requirement (test_runner.ValidationTests.test_missing_requirement) ... ok
+test_non_pass_is_not_success (test_runner.ValidationTests.test_non_pass_is_not_success) ... ok
+test_non_xml_log_is_not_junit (test_runner.ValidationTests.test_non_xml_log_is_not_junit) ... ok
+test_production_never_authorized (test_runner.ValidationTests.test_production_never_authorized) ... ok
+test_reviewer_cannot_complete_with_p1 (test_runner.ValidationTests.test_reviewer_cannot_complete_with_p1) ... ok
+test_skipped_tests (test_runner.ValidationTests.test_skipped_tests) ... ok
+test_source_hash_ignores_only_build_outputs (test_runner.ValidationTests.test_source_hash_ignores_only_build_outputs) ... ok
+test_valid_report (test_runner.ValidationTests.test_valid_report) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.007s
+
+OK

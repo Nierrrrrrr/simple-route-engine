@@ -1,0 +1,16 @@
+{
+  "platform": "Ubuntu 24.04 amd64 (WSL2)",
+  "pythonCryptography": "41.0.7",
+  "openssl": "3.0.13",
+  "packages": {
+    "python3-cryptography": "41.0.7-4ubuntu0.4",
+    "openssl": "3.0.13-0ubuntu3.11",
+    "python3": "3.12.3-0ubuntu2.1"
+  },
+  "paths": {
+    "python": "/usr/bin/python3",
+    "cryptography": "/usr/lib/python3/dist-packages/cryptography/__init__.py",
+    "openssl": "/usr/bin/openssl"
+  },
+  "source": "Existing Ubuntu noble/noble-updates/noble-security distribution packages; no installation performed. Rebuild from the exact Ubuntu source package versions recorded by dpkg-query in fixture evidence."
+}

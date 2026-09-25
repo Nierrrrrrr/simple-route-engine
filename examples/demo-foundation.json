@@ -1,0 +1,24 @@
+{
+  "definition": {
+    "routeId": "demo-foundation",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "example",
+          "type": "REST",
+          "endpointRef": "demo-fixture",
+          "input": {},
+          "outputSchema": {
+            "type": "object"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "totalSlots": 100,
+  "criticalReserved": 20,
+  "weights": {"HIGH": 6, "NORMAL": 3, "LOW": 1},
+  "wrrCycle": "HHHHHHNNNL",
+  "configUpdateCursorRule": "reset_to_zero_only_if_weights_change",
+  "isolation": "READ_COMMITTED",
+  "dslVersion": "1",
+  "engineSemanticsVersion": "1",
+  "adapterContractVersion": "1",
+  "maxNodes": 100,
+  "maxParallelBranches": 10,
+  "maxParallelDepth": 1,
+  "runtimeServices": ["spring-boot", "mariadb", "existing-kubernetes"]
+}

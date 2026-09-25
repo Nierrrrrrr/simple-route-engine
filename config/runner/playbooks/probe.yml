@@ -1,0 +1,16 @@
+- name: Controlled localhost probe
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Prove secret reference is available without disclosing it
+      ansible.builtin.assert:
+        that: lookup('file', '/run/route-secrets/value') | length > 0
+      no_log: true
+    - name: Write a harmless local file
+      ansible.builtin.copy:
+        content: route-engine-probe
+        dest: /tmp/route-engine-probe
+        mode: '0600'
+    - name: Observable non-secret result
+      ansible.builtin.debug:
+        msg: route-engine-probe-complete

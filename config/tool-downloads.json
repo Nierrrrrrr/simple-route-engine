@@ -1,0 +1,6 @@
+{
+ "java": {"version":"21.0.12.1+1", "url":"https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12.1_1.tar.gz", "algorithm":"sha256", "digest":"ce79869e1307ed8ee1e2baa86a412b1eb5b75d10a01006d788a6f968bcfaee94", "archive":true, "directory":"jdk-21.0.12.1+1"},
+ "maven": {"version":"3.9.11", "url":"https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.11/apache-maven-3.9.11-bin.tar.gz", "algorithm":"sha512", "digest":"bcfe4fe305c962ace56ac7b5fc7a08b87d5abd8b7e89027ab251069faebee516b0ded8961445d6d91ec1985dfe30f8153268843c89aa392733d1a3ec956c9978", "archive":true, "directory":"apache-maven-3.9.11"},
+ "kind": {"version":"0.33.0", "url":"https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64", "algorithm":"sha256", "digest":"aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d", "archive":false},
+ "kubectl": {"version":"1.36.4", "url":"https://dl.k8s.io/release/v1.36.4/bin/linux/amd64/kubectl", "algorithm":"sha256", "digest":"8b8f088da2dab964f853b38464033b1be15ede2839eca751482357c45abdd05a", "archive":false}
+}

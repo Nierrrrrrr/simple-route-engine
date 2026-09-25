@@ -1,0 +1,6 @@
+test_review_failure_returns_to_builder (test_runner.RunnerIntegrationTests.test_review_failure_returns_to_builder) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 20.444s
+
+OK

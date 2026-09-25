@@ -1,0 +1,16 @@
+.ai-run/
+.evidence/
+.tools/
+.cache/
+.local/
+.m2/
+.gradle/
+.venv/
+__pycache__/
+*.pyc
+**/target/
+**/build/
+node_modules/
+.env
+.env.*
+!.env.example

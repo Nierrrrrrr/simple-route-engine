@@ -1,0 +1,7 @@
+- name: Synchronous localhost wait
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Bounded synchronous wait
+      ansible.builtin.pause:
+        seconds: 120

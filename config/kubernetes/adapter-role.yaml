@@ -1,0 +1,17 @@
+# Template only. Bind this namespace-scoped Role to the engine ServiceAccount in the operator-selected run namespace.
+# No production deployment is authorized by this repository.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: route-engine-adapters
+  namespace: route-engine-work
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "create", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]

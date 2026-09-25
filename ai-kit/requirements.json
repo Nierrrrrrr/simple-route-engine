@@ -1,0 +1,463 @@
+{
+  "schema_version": 1,
+  "phases": [
+    "M0",
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "FINAL"
+  ],
+  "requirements": [
+    {
+      "id": "AC-001",
+      "phase": "M0",
+      "requirement": "契約與 phase 邊界固定",
+      "proof": "有 ADR/defaults/狀態草圖/需求 traceability，不新增未核准 runtime service。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-002",
+      "phase": "M0",
+      "requirement": "工具與隔離 preflight",
+      "proof": "實際執行版本、Docker、local workspace/network 權限檢查；未提供正式 credentials 不構成引擎 blocker。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-003",
+      "phase": "M0",
+      "requirement": "可機器驗證的 gate",
+      "proof": "verify-phase 與 report schema 真正檢查檔案/需求，缺檔/失敗/未跑返回非零；不以 echo PASS 代替。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-004",
+      "phase": "M0",
+      "requirement": "可恢復的 agent 工作紀錄",
+      "proof": "ExecPlan、STATE.json、DECISIONS、HANDOFF 初始檔案一致，明確當前階段與未完成清單。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-005",
+      "phase": "M1",
+      "requirement": "可重現 build",
+      "proof": "Maven Wrapper、固定相容依賴、實際 compile/unit test、非空測試集合。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-006",
+      "phase": "M1",
+      "requirement": "真實 MariaDB migrations",
+      "proof": "從空 InnoDB DB 成功 migrate 並重啟持久化；不能用 H2 或 mock DB 代替。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-007",
+      "phase": "M1",
+      "requirement": "route CRUD 與 immutable version",
+      "proof": "draft 可改、published 不可改、停用只禁止新建、原 execution reference 可保存。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-008",
+      "phase": "M1",
+      "requirement": "API/data schema 基礎",
+      "proof": "OpenAPI 與 validation 一致，UTC timestamps、request id、合法錯誤格式。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-009",
+      "phase": "M1",
+      "requirement": "持久化事件與唯一性",
+      "proof": "unique key/foreign key/state version 以及 execution_events 與狀態同交易寫入；rollback 不留半筆事件。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-010",
+      "phase": "M1",
+      "requirement": "本地可啟動環境",
+      "proof": "app+MariaDB compose/等價脚本啟動成功；不要求正式外部服務。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-011",
+      "phase": "M2",
+      "requirement": "最後一個 slot 競爭",
+      "proof": "真實 DB 同時至少 200 個 competing requests，只有 1 个取得最後 permit，U/N 不超限。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-012",
+      "phase": "M2",
+      "requirement": "100/20 硬保留",
+      "proof": "80 個 non-critical 用滿後拒絕其他 non-critical，CRITICAL 可用剩餘20；CRITICAL 也可占 shared。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-013",
+      "phase": "M2",
+      "requirement": "CRITICAL strict priority",
+      "proof": "排隊 CRITICAL 先於所有 non-critical 放行；不搶占 running route。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-014",
+      "phase": "M2",
+      "requirement": "6:3:1 持久化 WRR",
+      "proof": "三 queue 持續非空時 100 次非CRITICAL admissions 得 60/30/10，空 queue 跳過；重啟游標不歸零。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-015",
+      "phase": "M2",
+      "requirement": "class 內 FIFO 與 NOW 不插隊",
+      "proof": "NOW 按同一 scheduler 競爭，不能越過舊同class或CRITICAL；被拒不消耗權重。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-016",
+      "phase": "M2",
+      "requirement": "NOW 原子成功或拒絕",
+      "proof": "accepted 同交易持有 permit；reject 沒有 pending execution/action，之後 tick 不會啟動。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-017",
+      "phase": "M2",
+      "requirement": "QUEUE 與 capacity snapshot",
+      "proof": "QUEUE 可持久化等待且不占 permit，capacity 標記 observedAt/version 但不保證未來 admission。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-018",
+      "phase": "M2",
+      "requirement": "冪等與回應遺失",
+      "proof": "同 key 並行/重送只有一份結果；不同 body 衝突；reject 原key仍拒絕、新key可重新競爭；commit回應丟失可查原結果。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-019",
+      "phase": "M2",
+      "requirement": "配置更新與縮減",
+      "proof": "非法 T/R/weight 拒絕；導致 U/N 超限的更新拒絕；合法配置與游標規則原子/audit。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-020",
+      "phase": "M2",
+      "requirement": "permit generation",
+      "proof": "重複 release 冪等；舊 generation 不能釋放新 permit；lease expiry 不釋放 permit。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-021",
+      "phase": "M2",
+      "requirement": "跨程序交易正確",
+      "proof": "兩個獨立 JVM/進程並發 admission，共用 MariaDB；不能只測同 JVM synchronized。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-022",
+      "phase": "M2",
+      "requirement": "DB outage fail closed",
+      "proof": "DB 故障與 reject 不混淆；不從 cache 新放行；deadlock/lock timeout 不成為超发或重複 request。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-023",
+      "phase": "M3",
+      "requirement": "持久化順序推進",
+      "proof": "前步完成與後步待辦原子，commit後kill/restart仍可推進，不漏不重覆初始化 node。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-024",
+      "phase": "M3",
+      "requirement": "條件與上下文固定",
+      "proof": "when/condition 決策與輸出持久化；重啟/外部資料改變不重新選已選的分支。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-025",
+      "phase": "M3",
+      "requirement": "受限 parallel ALL_SETTLED",
+      "proof": "各 branch 狀態獨立，一失敗他支仍跑時不釋放；成功分支不因他支重試而重跑。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-026",
+      "phase": "M3",
+      "requirement": "durable retry 與時鐘",
+      "proof": "max attempts/elapsed/backoff 存DB；retry等待占slot；用可控時鐘驗證6小時語意及短實時restart。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-027",
+      "phase": "M3",
+      "requirement": "安全 MANUAL_WAIT",
+      "proof": "停止派發後續，所有外部工作已收斂才進人工且釋放；狀態與permit同交易。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-028",
+      "phase": "M3",
+      "requirement": "step 認領與 fencing",
+      "proof": "lease過期重查；舊 worker 結果被CAS拒絕；兩個execution不共用mutable context。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-029",
+      "phase": "M3",
+      "requirement": "一般例外隔離",
+      "proof": "某route拋exception不令其他route失敗、不令整批scheduler停止；executor有界。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-030",
+      "phase": "M3",
+      "requirement": "未知結果不盲目重送",
+      "proof": "simulation驗證IN_DOUBT保留permit/停止不安全後續，不偽造manual或success。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-031",
+      "phase": "M3",
+      "requirement": "DSL 發布驗證",
+      "proof": "未知node、重複ID、循環、非法相依、超出parallel深度、非法expression均拒絕。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-032",
+      "phase": "M4",
+      "requirement": "REST真實HTTP行為",
+      "proof": "實際fixture server：同步/非同步/輪詢/4xx/5xx/timeout/response lost；HTTP accepted不等於完成。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-033",
+      "phase": "M4",
+      "requirement": "副作用與冪等查验",
+      "proof": "對端已產生副作用後kill app，restart用原operation查验/dedupe；可證明side effect counter不重覆。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-034",
+      "phase": "M4",
+      "requirement": "無冪等的未知操作",
+      "proof": "無dedupe/查詢的fixture發生不明結果後不再次submit，保留permit並產生incident。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-035",
+      "phase": "M4",
+      "requirement": "實際Kubernetes rollout",
+      "proof": "在專用kind namespace操作真實resource並驗證generation/UID完成；處理conflict與failed rollout。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-036",
+      "phase": "M4",
+      "requirement": "Job建立/回應遺失",
+      "proof": "真實Job穩定identity、重查既有UID；app重啟不刪Job；提交過但GC找不到不盲目重建。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-037",
+      "phase": "M4",
+      "requirement": "真實Ansible執行",
+      "proof": "真實ansible-runner在Job對隔離localhost/fixture執行無害playbook，產出rc/status/events；不是echo成功。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-038",
+      "phase": "M4",
+      "requirement": "Job取消與remote工作",
+      "proof": "取消請求不當成已停止；所有remote async工作可追蹤；確認terminal後才釋放permit。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-039",
+      "phase": "M4",
+      "requirement": "外部重試世代",
+      "proof": "transport retry與新的business attempt身份分離；rollback direction不誤用forward key。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-040",
+      "phase": "M4",
+      "requirement": "失敗通知有限且隔離",
+      "proof": "NATS HTTP fixture通知成功/失敗/重送；不遞迴、不覆蓋主錯誤；permit釋放前收斂。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-041",
+      "phase": "M4",
+      "requirement": "artifact與secret保護",
+      "proof": "取得真實Runner artifacts，DB保存引用，Pod刪除後可讀必要證據；secret不出現在日誌/事件。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-042",
+      "phase": "M5",
+      "requirement": "recovery NOW原子拒絕",
+      "proof": "沒容量時保持MANUAL_WAIT/incident/step不變，沒有未來action；有容量時決策+新permit同commit。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-043",
+      "phase": "M5",
+      "requirement": "recovery QUEUE原priority",
+      "proof": "使用原priority、新enqueue時間，放行前重驗incident；不可由body提升/降低priority。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-044",
+      "phase": "M5",
+      "requirement": "recovery冪等/競態",
+      "proof": "同incident兩不同人工指令并发只有一个有效；重送/舊incident不重覆執行。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-045",
+      "phase": "M5",
+      "requirement": "RETRY與SKIP",
+      "proof": "只重試失敗step/branch；SKIP必須滿足output依賴或拒絕，完整audit。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-046",
+      "phase": "M5",
+      "requirement": "ROLLBACK預設禁止",
+      "proof": "無定義拒絕；僅合法incident step補償，不做全route rollback、不動已被後續依賴的舊step。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-047",
+      "phase": "M5",
+      "requirement": "rollback完成/失敗",
+      "proof": "成功回MANUAL_WAIT並釋放，失敗有限retry/人工；retry補償不跑forward；重複命令不重覆補償。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-048",
+      "phase": "M5",
+      "requirement": "CANCEL多狀態語意",
+      "proof": "manual CANCEL遵循mode；running cancel不搶第二permit且確認停止再釋放；queued撤回不建立新工作。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-049",
+      "phase": "M5",
+      "requirement": "IN_DOUBT人工查驗",
+      "proof": "resolve需operator/evidence，僅確認既有operation，不隱含new submit；安全收斂後正常轉態。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-050",
+      "phase": "M5",
+      "requirement": "舊permit延遲回應",
+      "proof": "首次permit延遲release/worker callback抵達第二次recovery時不破壞新permit/狀態。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-051",
+      "phase": "M6",
+      "requirement": "正式模式身份與權限",
+      "proof": "caller/operator/admin分界；未配置auth拒啟；negative tests、rotation/secret refs記錄。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-052",
+      "phase": "M6",
+      "requirement": "命令/URL/namespace邊界",
+      "proof": "controlled endpoint/playbook/resource、禁任意shell/eval/URL，redirect/credential不外洩，K8s最小權限。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-053",
+      "phase": "M6",
+      "requirement": "啟停與重疊Pod",
+      "proof": "graceful停止認領、強制kill亦可恢复；一replica不作唯一互斥保證，重疊程序測試。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-054",
+      "phase": "M6",
+      "requirement": "版本與DB升級相容",
+      "proof": "舊route/排隊/人工等待fixture在migration與engine升級後仍保原語意，不直接改published內容。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-055",
+      "phase": "M6",
+      "requirement": "監控/audit/持久化與runbook",
+      "proof": "metrics/health/records完整，logs有界持久，backup/restore於隔離DB演練或可驗證腳本；不碰正式DB。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-056",
+      "phase": "M6",
+      "requirement": "部署與測試可重現",
+      "proof": "固定image/version、local compose/kind、全新DB與工作目錄可建置；清理只限本run資源。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-057",
+      "phase": "M6",
+      "requirement": "Agent接手文件完整",
+      "proof": "DOCS_DELIVERABLES所有檔案存在，實際路徑/命令/schema相符，不以TBD充数。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-058",
+      "phase": "M6",
+      "requirement": "範例與外部驗收標示",
+      "proof": "五條DEMO涵蓋現有能力；未提供企業route/端點清楚列NOT_RUN，不能聲稱production驗收。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-059",
+      "phase": "FINAL",
+      "requirement": "乾淨環境全量累積驗收",
+      "proof": "重新建置並跑所有mandatory suites，無fail/error/skip/NOT_RUN；真實MariaDB與kind/Ansible證據存在。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-060",
+      "phase": "FINAL",
+      "requirement": "獨立整體審查",
+      "proof": "fresh session從固定需求反推code/test/故障路徑，P0/P1/P2與mandatory缺口全部關閉，只有有理由的P3可記錄。",
+      "verification_mode": "REVIEW"
+    },
+    {
+      "id": "AC-061",
+      "phase": "FINAL",
+      "requirement": "第六條route接手演練",
+      "proof": "fresh session只讀repo文件，純新增fixture/config發布執行DEMO route6，不改任何引擎Java；前五route回歸。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-062",
+      "phase": "FINAL",
+      "requirement": "fault matrix與長時語意",
+      "proof": "提交前後/回應遺失/落DB前後/parallel/manual/recovery crash點皆有實測，6小時虛擬時鐘與非soak界線清楚。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-063",
+      "phase": "FINAL",
+      "requirement": "交付清單與真實證據",
+      "proof": "需求ID→測試→命令→原始log/報表→source fingerprint完整，沒有硬編碼success或篡改驗收器。",
+      "verification_mode": "EXECUTABLE"
+    },
+    {
+      "id": "AC-064",
+      "phase": "FINAL",
+      "requirement": "上線界線",
+      "proof": "ENGINEERING_ACCEPTANCE=PASS只在全部滿足；EXTERNAL_ACCEPTANCE=NOT_RUN、PRODUCTION_DEPLOYMENT=NOT_AUTHORIZED。",
+      "verification_mode": "EXECUTABLE"
+    }
+  ]
+}

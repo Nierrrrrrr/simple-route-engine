@@ -1,0 +1,7 @@
+test_full_orchestration_with_fake_codex (test_runner.RunnerIntegrationTests.test_full_orchestration_with_fake_codex) ... ok
+test_block_is_not_pass (test_runner.RunnerIntegrationTests.test_block_is_not_pass) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 18.588s
+
+OK

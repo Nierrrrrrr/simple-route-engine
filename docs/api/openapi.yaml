@@ -1,0 +1,4594 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Route Engine M5 Durable Execution and Recovery API",
+    "version": "0.5.0",
+    "description": "Implemented registry/version APIs, DB admission, durable execution, configured REST/Kubernetes/Ansible adapters, and audited operator recovery. Local-admin bearer authentication derives the operator identity; caller/operator/admin role hardening remains M6. Production/external acceptance is NOT_RUN and deployment is not authorized. Strict JSON token types, unknown fields and trailing roots reject with 422 before mutation. Unsupported Content-Type is 415, incompatible Accept is JSON 406 before mutation. All errors include UTC timestamp and requestId; optional X-Request-ID is 1-128 A-Z a-z 0-9 . _ : - characters. Admission and recovery Idempotency-Key is principal plus endpoint/execution scoped; replay returns the original immutable decision. QUEUE and NOW_OR_REJECT use the same CRITICAL/FIFO/WRR scheduler and immutable priority/version. NOW means a permit acquired in the transaction, not immediate external work. 409 ADMISSION_REJECTED differs from 503 unknown database outcome: retain the same key on uncertainty. Development simulation and crash hooks require the explicit engine-development profile. Real adapters use controlled immutable catalog bindings; external I/O is outside DB transactions."
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/routes": {
+      "post": {
+        "operationId": "createRoute",
+        "x-implemented-phase": "M1",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: schema or complete single JSON body validation failed; no route/version/stateVersion/audit mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteCreate"
+              }
+            }
+          },
+          "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
+        }
+      },
+      "get": {
+        "operationId": "listRoutes",
+        "x-implemented-phase": "M1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Route"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        }
+      }
+    },
+    "/routes/{routeId}": {
+      "get": {
+        "operationId": "getRoute",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateRoute",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: schema or complete single JSON body validation failed; no route/version/stateVersion/audit mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteUpdate"
+              }
+            }
+          },
+          "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
+        }
+      },
+      "delete": {
+        "operationId": "softDeleteRoute",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "stateVersion",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Route"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        }
+      }
+    },
+    "/routes/{routeId}/versions": {
+      "post": {
+        "operationId": "createDraft",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: schema or complete single JSON body validation failed; no route/version/stateVersion/audit mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Draft"
+              }
+            }
+          },
+          "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
+        }
+      },
+      "get": {
+        "operationId": "listVersions",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Version"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        }
+      }
+    },
+    "/routes/{routeId}/versions/{version}": {
+      "get": {
+        "operationId": "getVersion",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        }
+      },
+      "put": {
+        "operationId": "editDraft",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: schema or complete single JSON body validation failed; no route/version/stateVersion/audit mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftEdit"
+              }
+            }
+          },
+          "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
+        }
+      },
+      "delete": {
+        "operationId": "withdrawDraft",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "stateVersion",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Withdrawal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        }
+      }
+    },
+    "/routes/{routeId}/versions/{version}/publish": {
+      "post": {
+        "operationId": "publishDraft",
+        "x-implemented-phase": "M1",
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: schema or complete single JSON body validation failed; no route/version/stateVersion/audit mutation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Error envelope; see ErrorResponse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_FOUND: missing resource or URL"
+          },
+          "405": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "description": "Supported HTTP methods",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "METHOD_NOT_ALLOWED: HTTP method unsupported; Allow preserves supported methods"
+          },
+          "406": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "NOT_ACCEPTABLE: Accept does not allow application/json; rejected before mutation, with no route/version/stateVersion/audit changes"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Accept": {
+                "description": "Supported request media types when supplied by Spring",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Request-ID": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/State"
+              }
+            }
+          },
+          "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
+        }
+      }
+    },
+    "/executions": {
+      "post": {
+        "operationId": "submitExecution",
+        "x-implemented-phase": "M2",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+            },
+            "description": "Unique within authenticated principal + POST /executions. Same content replays original decision; rejected key remains rejected. New competition requires new key. Preserve on transport/503 uncertainty."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionDecision"
+                }
+              }
+            },
+            "headers": {
+              "X-Admission-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Stable request identity derived from principal/scope/key; conflict may omit this header if validation rejected before dispatch."
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "DB or commit outcome unavailable. No claim that work did not start; query or retry same identity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionUnavailable"
+                }
+              }
+            },
+            "headers": {
+              "X-Admission-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Stable request identity derived from principal/scope/key; conflict may omit this header if validation rejected before dispatch."
+              }
+            }
+          },
+          "409": {
+            "description": "ADMISSION_REJECTED has no execution; IDEMPOTENCY_CONFLICT has Error envelope. No latent work or cursor advance from rejected candidate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AdmissionDecision"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
+                  ]
+                }
+              }
+            },
+            "headers": {
+              "X-Admission-Request-ID": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "description": "Stable request identity derived from principal/scope/key; conflict may omit this header if validation rejected before dispatch."
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdmissionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/executions/{id}": {
+      "get": {
+        "operationId": "lookupExecution",
+        "x-implemented-phase": "M2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionSnapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/executions/{id}/recoveries": {
+      "post": {
+        "operationId": "recoverExecution",
+        "x-implemented-phase": "M5",
+        "summary": "Manual RETRY/SKIP/ROLLBACK/CANCEL through shared QUEUE or NOW_OR_REJECT. Only current incident; original priority/version cannot be overridden.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RecoveryDecision"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: invalid schema, output dependency or unsafe operator payload. No new work, decision, payload or audit mutation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database outcome unavailable, or VALIDATION_UNAVAILABLE before mutation when bound credential validation is temporarily unavailable. Retry the same identity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionUnavailable"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Immutable decision; replay returns original body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryDecision"
+                }
+              }
+            }
+          }
+        },
+        "description": " Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread."
+      }
+    },
+    "/executions/{id}/cancel": {
+      "post": {
+        "operationId": "cancelExecution",
+        "x-implemented-phase": "M5",
+        "summary": "Running cancel uses the existing permit and waits for external stop. QUEUED withdrawal cancels initial request; RECOVERY_QUEUED withdrawal returns MANUAL_WAIT. Manual cancellation uses /recoveries.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RecoveryDecision"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: invalid schema, output dependency or unsafe operator payload. No new work, decision, payload or audit mutation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database outcome unavailable, or VALIDATION_UNAVAILABLE before mutation when bound credential validation is temporarily unavailable. Retry the same identity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionUnavailable"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Immutable decision; replay returns original body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "description": " Fresh dispatch linearizes at durable claim commit. Cancel prevents later fresh claims. Already claimed work may still submit with its existing operation identity, retains its original permit, and must reach observed terminal convergence before release. Cancel acceptance and a remote DELETE202 do not prove termination. Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread."
+      }
+    },
+    "/executions/{id}/incidents/{incidentId}/resolve": {
+      "post": {
+        "operationId": "resolveIncident",
+        "x-implemented-phase": "M5",
+        "summary": "Audit evidence confirmation of the exact existing IN_DOUBT operation; no new submit or permit. Unknown siblings/notifications must settle before release.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "incidentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RecoveryDecision"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "INVALID_REQUEST: invalid schema, output dependency or unsafe operator payload. No new work, decision, payload or audit mutation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database outcome unavailable, or VALIDATION_UNAVAILABLE before mutation when bound credential validation is temporarily unavailable. Retry the same identity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionUnavailable"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Immutable decision; replay returns original body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "description": " Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread."
+      }
+    },
+    "/capacity": {
+      "get": {
+        "operationId": "observeCapacity",
+        "x-implemented-phase": "M2",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capacity"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "Observed snapshot under pool lock, not a reservation."
+      }
+    },
+    "/capacity/config": {
+      "put": {
+        "operationId": "configureCapacity",
+        "x-implemented-phase": "M2",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capacity"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STATE_CONFLICT for stale version or unsafe shrink",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PoolConfig"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admission-requests/{id}": {
+      "get": {
+        "operationId": "lookupAdmissionDecision",
+        "x-implemented-phase": "M2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionDecision"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admission-requests": {
+      "get": {
+        "operationId": "lookupAdmissionDecisionByKey",
+        "x-implemented-phase": "M2",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdmissionDecision"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized requestId/UTC error envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/executions/{id}/incidents": {
+      "get": {
+        "operationId": "listExecutionIncidents",
+        "x-implemented-phase": "M5",
+        "description": "Open incidents with exact step/attempt/operation/direction/generations and available actions. COMPENSATED requires an explicit CANCEL recovery; no automatic forward restart or duplicate compensation. legacyUnbound history has no legal automatic action.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current operator discovery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error envelope; 409 state/idempotency conflict or ADMISSION_REJECTED decision, 503 uncertain DB outcome. Retry same key on uncertainty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "requestId",
+          "timestamp"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RouteCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeId",
+          "name"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      },
+      "RouteUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "enabled",
+          "stateVersion"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "stateVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "JSON integer token >= 0; no decimal/exponent token, string or boolean coercion."
+          }
+        }
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "definition"
+        ],
+        "properties": {
+          "definition": {
+            "$ref": "#/components/schemas/Definition"
+          }
+        }
+      },
+      "DraftEdit": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "definition",
+          "stateVersion"
+        ],
+        "properties": {
+          "definition": {
+            "$ref": "#/components/schemas/Definition"
+          },
+          "stateVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "JSON integer token >= 0; no decimal/exponent token, string or boolean coercion."
+          }
+        }
+      },
+      "State": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stateVersion"
+        ],
+        "properties": {
+          "stateVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "JSON integer token >= 0; no decimal/exponent token, string or boolean coercion."
+          }
+        }
+      },
+      "Route": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeId",
+          "name",
+          "enabled",
+          "deletedAt",
+          "maxVersion",
+          "latestPublishedVersion",
+          "stateVersion",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "maxVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "latestPublishedVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "stateVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Version": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeId",
+          "version",
+          "status",
+          "definition",
+          "definitionHash",
+          "dslVersion",
+          "engineSemanticsVersion",
+          "adapterContractVersion",
+          "stateVersion",
+          "createdAt",
+          "publishedAt"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "status": {
+            "enum": [
+              "DRAFT",
+              "PUBLISHED"
+            ]
+          },
+          "definition": {
+            "$ref": "#/components/schemas/Definition"
+          },
+          "definitionHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "dslVersion": {
+            "const": "1"
+          },
+          "engineSemanticsVersion": {
+            "const": "1"
+          },
+          "adapterContractVersion": {
+            "const": "1"
+          },
+          "stateVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Withdrawal": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeId",
+          "version",
+          "withdrawn"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "withdrawn": {
+            "const": true
+          }
+        }
+      },
+      "Definition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeId",
+          "version",
+          "dslVersion",
+          "engineSemanticsVersion",
+          "adapterContractVersion",
+          "root"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "dslVersion": {
+            "const": "1"
+          },
+          "engineSemanticsVersion": {
+            "const": "1"
+          },
+          "adapterContractVersion": {
+            "const": "1"
+          },
+          "inputSchema": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              {
+                "properties": {
+                  "type": {
+                    "const": "object"
+                  }
+                }
+              }
+            ]
+          },
+          "root": {
+            "$ref": "#/components/schemas/Dsl_sequence"
+          }
+        }
+      },
+      "Sequence": {
+        "$ref": "#/components/schemas/Dsl_sequence"
+      },
+      "RecoveryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "incidentId",
+          "stepId",
+          "action",
+          "admissionMode",
+          "reason"
+        ],
+        "properties": {
+          "incidentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "stepId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "enum": [
+              "RETRY",
+              "SKIP",
+              "ROLLBACK",
+              "CANCEL"
+            ]
+          },
+          "admissionMode": {
+            "enum": [
+              "QUEUE",
+              "NOW_OR_REJECT"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "replacementOutput": {
+            "description": "SKIP only. Must satisfy the failed forward node outputSchema; password/secret/token/authorization/privatekey keys forbidden recursively. Omitted/null normalizes to an empty object for SKIP. Output required by downstream bindings must be supplied."
+          }
+        }
+      },
+      "REST": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "endpointRef"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+          },
+          "type": {
+            "const": "REST"
+          },
+          "endpointRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          },
+          "input": {
+            "type": "object"
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "artifactDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "credentialRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          }
+        }
+      },
+      "KUBERNETES": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "resourceRef"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+          },
+          "type": {
+            "const": "KUBERNETES"
+          },
+          "resourceRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          },
+          "input": {
+            "type": "object"
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "artifactDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "credentialRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          }
+        }
+      },
+      "ANSIBLE": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "playbookRef"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+          },
+          "type": {
+            "const": "ANSIBLE"
+          },
+          "playbookRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          },
+          "input": {
+            "type": "object"
+          },
+          "outputSchema": {
+            "type": "object"
+          },
+          "artifactDigest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "credentialRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          }
+        }
+      },
+      "AdmissionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "routeId",
+          "priority",
+          "admissionMode",
+          "input"
+        ],
+        "properties": {
+          "routeId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "routeVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "Optional exact published version. Omitted/null binds latest at acceptance, never when dequeued."
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "NORMAL",
+              "LOW"
+            ]
+          },
+          "admissionMode": {
+            "type": "string",
+            "enum": [
+              "QUEUE",
+              "NOW_OR_REJECT"
+            ]
+          },
+          "input": {
+            "type": "object",
+            "description": "Non-secret input only. Use credential references in definitions. Canonical request limit 262144 UTF-8 bytes."
+          }
+        }
+      },
+      "AdmissionDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "admissionRequestId",
+          "decision",
+          "code",
+          "executionId",
+          "routeId",
+          "routeVersion",
+          "priority",
+          "configVersion",
+          "decidedAt"
+        ],
+        "properties": {
+          "admissionRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "ADMITTED",
+              "REJECTED"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "ADMISSION_QUEUED",
+              "ADMISSION_ADMITTED",
+              "ADMISSION_REJECTED"
+            ]
+          },
+          "executionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "routeId": {
+            "type": "string"
+          },
+          "routeVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "NORMAL",
+              "LOW"
+            ]
+          },
+          "configVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Capacity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "totalSlots",
+          "criticalReserved",
+          "highWeight",
+          "normalWeight",
+          "lowWeight",
+          "wrrCursor",
+          "configVersion",
+          "admissionEnabled",
+          "used",
+          "nonCriticalUsed",
+          "observedAt",
+          "queued"
+        ],
+        "properties": {
+          "totalSlots": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "criticalReserved": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "highWeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "normalWeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "lowWeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "wrrCursor": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "configVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "admissionEnabled": {
+            "type": "boolean"
+          },
+          "used": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nonCriticalUsed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "queued": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "PoolConfig": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "totalSlots",
+          "criticalReserved",
+          "highWeight",
+          "normalWeight",
+          "lowWeight",
+          "configVersion",
+          "admissionEnabled",
+          "reason"
+        ],
+        "properties": {
+          "totalSlots": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000
+          },
+          "criticalReserved": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "highWeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "normalWeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "lowWeight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "configVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "admissionEnabled": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "description": "criticalReserved <= totalSlots. Reject if live used/nonCriticalUsed would exceed new bounds. Every successful update increments configVersion, resets wrrCursor to 0 only if weights change (capacity/pause-only updates preserve it) and atomically records audit plus full pool_config_history. Stale version returns 409."
+      },
+      "AdmissionUnavailable": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "requestId",
+          "timestamp",
+          "admissionRequestId"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "admissionRequestId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ExecutionSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "executionId",
+          "routeId",
+          "routeVersion",
+          "priority",
+          "state",
+          "stateVersion",
+          "permitHeld",
+          "permitGeneration",
+          "leaseGeneration",
+          "definitionHash"
+        ],
+        "properties": {
+          "executionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "routeId": {
+            "type": "string"
+          },
+          "routeVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "priority": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "stateVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "permitHeld": {
+            "type": "boolean"
+          },
+          "permitGeneration": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "leaseGeneration": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "definitionHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      },
+      "Dsl_valueSchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "maxProperties": 0
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "string",
+                  "boolean",
+                  "number",
+                  "integer"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "object"
+              },
+              "properties": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+                },
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_valueSchema"
+                }
+              },
+              "required": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+                }
+              },
+              "additionalProperties": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "Dsl_comparison": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "operator"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "pattern": "^(input|steps\\.[A-Za-z][A-Za-z0-9_-]{0,127})(\\.[A-Za-z][A-Za-z0-9_-]{0,127})+$"
+          },
+          "operator": {
+            "enum": [
+              "EQ",
+              "NE",
+              "LT",
+              "LE",
+              "GT",
+              "GE",
+              "EXISTS"
+            ]
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "operator": {
+                  "const": "EXISTS"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "value"
+              ]
+            }
+          }
+        ]
+      },
+      "Dsl_inputValue": {
+        "oneOf": [
+          {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Dsl_inputValue"
+            }
+          },
+          {
+            "type": "object",
+            "not": {
+              "required": [
+                "$ref"
+              ]
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Dsl_inputValue"
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "$ref"
+            ],
+            "properties": {
+              "$ref": {
+                "type": "string",
+                "pattern": "^(input|steps\\.[A-Za-z][A-Za-z0-9_-]{0,127})(\\.[A-Za-z][A-Za-z0-9_-]{0,127})+$"
+              }
+            }
+          }
+        ]
+      },
+      "Dsl_retry": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "maxAttempts",
+          "maxElapsedSeconds",
+          "backoffSeconds"
+        ],
+        "properties": {
+          "maxAttempts": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "maxElapsedSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 604800
+          },
+          "backoffSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 86400
+          },
+          "maxBackoffSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 86400
+          }
+        }
+      },
+      "Dsl_notification": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "endpointRef",
+          "maxAttempts"
+        ],
+        "properties": {
+          "endpointRef": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        }
+      },
+      "Dsl_sequence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "children"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+          },
+          "when": {
+            "$ref": "#/components/schemas/Dsl_comparison"
+          },
+          "type": {
+            "const": "SEQUENCE"
+          },
+          "children": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/Dsl_node"
+            }
+          }
+        }
+      },
+      "Dsl_parallel": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "join",
+          "branches"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+          },
+          "when": {
+            "$ref": "#/components/schemas/Dsl_comparison"
+          },
+          "type": {
+            "const": "PARALLEL"
+          },
+          "join": {
+            "const": "ALL_SETTLED"
+          },
+          "branches": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/Dsl_node"
+            }
+          }
+        }
+      },
+      "Dsl_condition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "condition",
+          "then",
+          "else"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+          },
+          "when": {
+            "$ref": "#/components/schemas/Dsl_comparison"
+          },
+          "type": {
+            "const": "CONDITION"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/Dsl_comparison"
+          },
+          "then": {
+            "$ref": "#/components/schemas/Dsl_node"
+          },
+          "else": {
+            "$ref": "#/components/schemas/Dsl_node"
+          }
+        }
+      },
+      "Dsl_activity": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "endpointRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+              },
+              "when": {
+                "$ref": "#/components/schemas/Dsl_comparison"
+              },
+              "type": {
+                "const": "REST"
+              },
+              "endpointRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_inputValue"
+                }
+              },
+              "outputSchema": {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              "artifactDigest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "credentialRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "retry": {
+                "$ref": "#/components/schemas/Dsl_retry"
+              },
+              "rollback": {
+                "$ref": "#/components/schemas/Dsl_compensation"
+              },
+              "onFailure": {
+                "$ref": "#/components/schemas/Dsl_notification"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "resourceRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+              },
+              "when": {
+                "$ref": "#/components/schemas/Dsl_comparison"
+              },
+              "type": {
+                "const": "KUBERNETES"
+              },
+              "resourceRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_inputValue"
+                }
+              },
+              "outputSchema": {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              "artifactDigest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "credentialRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "retry": {
+                "$ref": "#/components/schemas/Dsl_retry"
+              },
+              "rollback": {
+                "$ref": "#/components/schemas/Dsl_compensation"
+              },
+              "onFailure": {
+                "$ref": "#/components/schemas/Dsl_notification"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "playbookRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+              },
+              "when": {
+                "$ref": "#/components/schemas/Dsl_comparison"
+              },
+              "type": {
+                "const": "ANSIBLE"
+              },
+              "playbookRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_inputValue"
+                }
+              },
+              "outputSchema": {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              "artifactDigest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "credentialRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "retry": {
+                "$ref": "#/components/schemas/Dsl_retry"
+              },
+              "rollback": {
+                "$ref": "#/components/schemas/Dsl_compensation"
+              },
+              "onFailure": {
+                "$ref": "#/components/schemas/Dsl_notification"
+              }
+            }
+          }
+        ]
+      },
+      "Dsl_compensation": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "endpointRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+              },
+              "when": {
+                "$ref": "#/components/schemas/Dsl_comparison"
+              },
+              "type": {
+                "const": "REST"
+              },
+              "endpointRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_inputValue"
+                }
+              },
+              "outputSchema": {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              "artifactDigest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "credentialRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "retry": {
+                "$ref": "#/components/schemas/Dsl_retry"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "resourceRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+              },
+              "when": {
+                "$ref": "#/components/schemas/Dsl_comparison"
+              },
+              "type": {
+                "const": "KUBERNETES"
+              },
+              "resourceRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_inputValue"
+                }
+              },
+              "outputSchema": {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              "artifactDigest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "credentialRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "retry": {
+                "$ref": "#/components/schemas/Dsl_retry"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "playbookRef"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$"
+              },
+              "when": {
+                "$ref": "#/components/schemas/Dsl_comparison"
+              },
+              "type": {
+                "const": "ANSIBLE"
+              },
+              "playbookRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/Dsl_inputValue"
+                }
+              },
+              "outputSchema": {
+                "$ref": "#/components/schemas/Dsl_valueSchema"
+              },
+              "artifactDigest": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "credentialRef": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+              },
+              "retry": {
+                "$ref": "#/components/schemas/Dsl_retry"
+              }
+            }
+          }
+        ]
+      },
+      "Dsl_node": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "enum": [
+              "SEQUENCE",
+              "CONDITION",
+              "PARALLEL",
+              "REST",
+              "KUBERNETES",
+              "ANSIBLE"
+            ]
+          }
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Dsl_sequence"
+          },
+          {
+            "$ref": "#/components/schemas/Dsl_parallel"
+          },
+          {
+            "$ref": "#/components/schemas/Dsl_condition"
+          },
+          {
+            "$ref": "#/components/schemas/Dsl_activity"
+          }
+        ]
+      },
+      "CancelRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "ResolveRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stepId",
+          "operationId",
+          "outcome",
+          "reason",
+          "evidence"
+        ],
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outcome": {
+            "enum": [
+              "SUCCEEDED",
+              "FAILED",
+              "STOPPED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "output": {
+            "description": "SUCCEEDED only. Validated against the existing operation outputSchema with recursive forbidden-secret-key checks. Omitted/null means empty object."
+          }
+        }
+      },
+      "RecoveryDecision": {
+        "type": "object",
+        "required": [
+          "admissionRequestId",
+          "executionId",
+          "incidentId",
+          "stepId",
+          "action",
+          "decision",
+          "code",
+          "priority",
+          "routeVersion",
+          "configVersion",
+          "decidedAt"
+        ],
+        "properties": {
+          "admissionRequestId": {
+            "type": "string"
+          },
+          "executionId": {
+            "type": "string"
+          },
+          "incidentId": {
+            "type": "string"
+          },
+          "stepId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "decidedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "routeVersion": {
+            "type": "integer"
+          },
+          "configVersion": {
+            "type": "integer"
+          }
+        }
+      },
+      "IncidentList": {
+        "type": "object",
+        "required": [
+          "executionId",
+          "state",
+          "incidents"
+        ],
+        "properties": {
+          "executionId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "incidents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "incidentId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "stepId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "nodeId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "kind": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "direction": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "operationId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "attemptId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "pendingRecoveryId": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "legacyUnbound": {
+                  "type": "boolean"
+                },
+                "operationGeneration": {
+                  "type": "integer"
+                },
+                "permitGeneration": {
+                  "type": "integer"
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "RETRY",
+                      "SKIP",
+                      "ROLLBACK",
+                      "CANCEL",
+                      "RESOLVE"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

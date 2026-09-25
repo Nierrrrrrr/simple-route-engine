@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: route-engine
+  datasource:
+    url: ${ROUTE_DB_URL}
+    username: ${ROUTE_DB_USER}
+    password: ${ROUTE_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 3000
+      validation-timeout: 1000
+      connection-init-sql: "SET time_zone = '+00:00', innodb_lock_wait_timeout=3"
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+    serialization:
+      write-dates-as-timestamps: false
+  flyway:
+    clean-disabled: true
+server:
+  address: ${ROUTE_BIND_ADDRESS:127.0.0.1}
+  port: ${ROUTE_PORT:8080}
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+route:
+  auth:
+    admin-token-sha256: ${ROUTE_ADMIN_TOKEN_SHA256}
+logging:
+  level:
+    org.springframework.web: WARN

@@ -1,0 +1,53 @@
+{
+  "definition": {
+    "routeId": "demo-engine",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "prepare",
+          "type": "REST",
+          "endpointRef": "dev.success",
+          "input": {
+            "ready": true
+          },
+          "outputSchema": {
+            "type": "object",
+            "properties": {
+              "ready": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "ready"
+            ]
+          }
+        },
+        {
+          "id": "choice",
+          "type": "CONDITION",
+          "condition": {
+            "field": "steps.prepare.ready",
+            "operator": "EQ",
+            "value": true
+          },
+          "then": {
+            "id": "yes",
+            "type": "REST",
+            "endpointRef": "dev.success"
+          },
+          "else": {
+            "id": "no",
+            "type": "REST",
+            "endpointRef": "dev.success"
+          }
+        }
+      ]
+    }
+  }
+}
