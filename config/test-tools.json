@@ -4,7 +4,7 @@
   "openssl": "3.0.13",
   "packages": {
     "python3-cryptography": "41.0.7-4ubuntu0.4",
-    "openssl": "3.0.13-0ubuntu3.11",
+    "openssl": "3.0.13-0ubuntu3.15",
     "python3": "3.12.3-0ubuntu2.1"
   },
   "paths": {

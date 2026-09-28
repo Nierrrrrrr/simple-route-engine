@@ -1,0 +1,22 @@
+{
+  "name": "DEMO delivery 4 - synthetic fixture only",
+  "definition": {
+    "routeId": "demo-delivery-4",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "ansible",
+          "type": "ANSIBLE",
+          "playbookRef": "runner"
+        }
+      ]
+    }
+  },
+  "input": {}
+}

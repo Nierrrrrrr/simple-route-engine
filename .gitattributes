@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.jar -text
+*.png -text
+*.jpg -text
+*.zip -text
+*.gz -text

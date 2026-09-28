@@ -24,7 +24,7 @@ public class AdmissionController {
   try{var result=service.submit(actor(request),key,body,rid(request));return ResponseEntity.status(result.status()).body(result.body());}
   catch(DataAccessException|TransactionException unavailable){return ResponseEntity.status(503).body(new Unavailable("DATABASE_UNAVAILABLE","Outcome unavailable; query or retry the same identity",rid(request),Instant.now(),id));}
  }
- @GetMapping("/executions/{id}") JsonNode execution(@PathVariable String id,HttpServletRequest r){return service.execution(actor(r),id);}
+ @GetMapping("/executions/{id}") JsonNode execution(@PathVariable String id,HttpServletRequest r){return service.execution(actor(r),id,java.util.Set.of("admin","operator").contains(r.getAttribute("role")));}
  @GetMapping("/admission-requests/{id}") JsonNode lookup(@PathVariable String id,HttpServletRequest r){return service.lookup(actor(r),id);}
  @GetMapping("/admission-requests") JsonNode lookupKey(@RequestParam String key,HttpServletRequest r){if(!key.matches("[A-Za-z0-9._:-]{1,128}"))throw ApiProblem.invalid();return service.lookup(actor(r),AdmissionService.identity(actor(r),key));}
  @GetMapping("/capacity") JsonNode capacity(){return service.capacity();}

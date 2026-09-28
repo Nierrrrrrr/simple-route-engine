@@ -30,7 +30,9 @@ locks for terminal, repeated UNKNOWN and claim-budget paths. Keep these assertio
 waits. New incident insertion must not accidentally reacquire an older incident after step work; ADR0007
 records the FK parent audit. Do not treat the pool lock as an exemption from the fixed acquisition order.
 
-For recovery changes inspect AdmissionService.recover/tick, RecoveryPolicy.validate/apply, OperatorService.command and EngineService.settle/claim/confirm. Preserve fixed lock order and V4 incident identity; append migrations after V7. Run cumulative M5 for AC-001 through AC-050, including real process crashes, mixed admission/recovery WRR and old callback/release fencing.
+For recovery changes inspect AdmissionService.recover/tick, RecoveryPolicy.validate/apply, OperatorService.command and EngineService.settle/claim/confirm. Preserve fixed lock order and V4 incident identity; append migrations after V8. Run cumulative M5 for AC-001 through AC-050, including real process crashes, mixed admission/recovery WRR and old callback/release fencing.
 
 
 Operator mutations must call OperatorPayloadGuard.prepare before entering a transaction and recheck its immutable context/body digest after the fixed pool/execution/incident locks. Do not read credential files while holding DB locks, persist a prepared secret, skip queue revalidation or change original idempotent decisions. RecoveryOutputProtectionIT and guard proof negatives must remain mandatory.
+
+M6 changes also require AC-051 through AC-058. V8 adds operations indexes only; append future migrations after V8. Preserve ClaimLifecycle checks after database wait boundaries, original principal identity and accepted M5 artifact migration proof. Run cumulative M6; never use a newly built candidate as the old upgrade engine.

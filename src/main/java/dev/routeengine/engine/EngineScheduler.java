@@ -26,5 +26,5 @@ public class EngineScheduler {
  }
  public int maximumWorkers(){return workers.getMaximumPoolSize();}
  public int queueCapacity(){return workers.getQueue().remainingCapacity()+workers.getQueue().size();}
- @PreDestroy public void stop(){workers.shutdown();try{if(!workers.awaitTermination(5,TimeUnit.SECONDS))workers.shutdownNow();}catch(InterruptedException e){Thread.currentThread().interrupt();workers.shutdownNow();}}
+ @PreDestroy public void stop(){workers.getQueue().clear();workers.shutdown();try{if(!workers.awaitTermination(5,TimeUnit.SECONDS))workers.shutdownNow();}catch(InterruptedException e){Thread.currentThread().interrupt();workers.shutdownNow();}}
 }

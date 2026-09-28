@@ -29,13 +29,28 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,metrics
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
 route:
   auth:
-    admin-token-sha256: ${ROUTE_ADMIN_TOKEN_SHA256}
+    admin-token-sha256: ${ROUTE_ADMIN_TOKEN_SHA256:}
+    caller-token-sha256: ${ROUTE_CALLER_TOKEN_SHA256:}
+    operator-token-sha256: ${ROUTE_OPERATOR_TOKEN_SHA256:}
 logging:
   level:
     org.springframework.web: WARN
+
+  file:
+    name: ${ROUTE_LOG_FILE:./.local/logs/route-engine.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB

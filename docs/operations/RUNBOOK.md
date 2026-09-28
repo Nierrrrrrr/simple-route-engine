@@ -1,4 +1,4 @@
-# Local operations through M4
+# Local operations through M6
 
 This is the isolated development engine runbook. Production deployment is NOT_AUTHORIZED.
 M4 includes actual isolated REST/Kubernetes/Runner tests and controlled catalog-backed adapters.
@@ -96,3 +96,16 @@ M5 dispatch/cancel ordering: a fresh operation is dispatched at the claim transa
 
 
 Operator output rejection:422 INVALID_REQUEST can indicate a bound credential or forbidden field in output, reason/evidence or request identity. Do not copy credentials from provider evidence. Execution/incident/permit and command/admission state remain unchanged; correct the payload before retrying.503 VALIDATION_UNAVAILABLE means the exact bound credential cannot currently be checked; restore that deployment-owned reference and retry. Same-key replay of an already stored decision remains available without the credential file. Legacy/unbound or changed binding context fails closed; do not substitute current catalog metadata for missing historical identity.
+
+
+## M6 operational lifecycle and observations
+
+RequestSecurityFilter enforces caller/operator/admin; see SECURITY.md. Operator/admin can read caller-created execution status, while admission decision lookup remains scoped to its original principal. Pause admission using PUT /capacity/config with admissionEnabled=false and the current configVersion, not by reducing capacity below held permits. Existing work retains its permit. GET /capacity is only an observed snapshot.
+
+SIGTERM triggers ClaimLifecycle on ContextClosedEvent. EngineService.claim rechecks after DB locks; queued local tasks cannot begin a new claim after stopping. Admission wake/submission likewise stop. Already committed operations may complete or remain durable for restart; shutdown does not release permits or delete Jobs. Spring graceful HTTP shutdown and the worker five-second bounded drain are separate from business safe-stop. For Kubernetes retain a45-second termination grace period and the unchanged stable Job identities. After SIGKILL restart scans DB and reconciles; never force-release unknown external work.
+
+GET /actuator/health/readiness includes DB health; liveness does not depend on target HTTP success. GET /actuator/metrics requires operator/admin. route.queue.depth, route.permits.total/noncritical, route.admission.rejected, route.retry.wait, route.in.doubt, route.stalled, route.lease.expired, route.reconcile.events and route.scheduler.lag.seconds are durable DB observations. Query errors return NaN, never a cached capacity admission decision. Alert on unknown/stalled/lag growth and investigate with incident/audit identities. Gauge totals are current DB observations, not process-lifetime counters.
+
+ROUTE_LOG_FILE selects the persistent log file; default local path is .local/logs/route-engine.log. Logback rolls10MB files with seven-day history and100MB cap. Production template mounts a log PVC; Runner artifacts use a separate catalog PVC. Restrict both volumes and apply approved retention. Backup/restore proof and template configuration are in DEPLOYMENT.md. An unavailable DB stops readiness/admission; target API failure alone must not restart the entire app.
+
+FINAL round3 credential-envelope rejection:422 performs no admission/version/audit mutation;503 indicates relevant validation is unavailable. Detected-unsafe or unavailable-validation errors generate a new response correlation ID rather than echo the incoming X-Request-ID. Retain that safe response ID; do not paste the rejected credential-bearing header into logs or retry records. Historical unsafe definitions/executions remain unchanged and fail closed; restore safe validation or use a clean published version and audited reconciliation, never force-release unknown work. Existing durable admission decisions continue to replay without a new credential read.

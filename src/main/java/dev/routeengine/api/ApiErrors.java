@@ -18,7 +18,7 @@ import jakarta.validation.ConstraintViolationException;
 public class ApiErrors {
  public record ErrorBody(String code,String message,String requestId,Instant timestamp){}
  public static ErrorBody body(String code,String message,String requestId){return new ErrorBody(code,message,requestId,Instant.now());}
- @ExceptionHandler(ApiProblem.class) ResponseEntity<ErrorBody> problem(ApiProblem p,HttpServletRequest r){return error(p.status(),p.code(),p.getMessage(),r);}
+ @ExceptionHandler(ApiProblem.class) ResponseEntity<ErrorBody> problem(ApiProblem p,HttpServletRequest r,jakarta.servlet.http.HttpServletResponse response){if(p.suppressRequestId()){String safe=java.util.UUID.randomUUID().toString();r.setAttribute("requestId",safe);response.setHeader("X-Request-ID",safe);}return error(p.status(),p.code(),p.getMessage(),r);}
  @ExceptionHandler({MethodArgumentNotValidException.class,HttpMessageNotReadableException.class,ConstraintViolationException.class,MethodArgumentTypeMismatchException.class,MissingServletRequestParameterException.class})
  ResponseEntity<ErrorBody> invalid(Exception ignored,HttpServletRequest r){return error(422,"INVALID_REQUEST","Request does not match the supported schema",r);}
  @ExceptionHandler({NoHandlerFoundException.class,NoResourceFoundException.class,HttpRequestMethodNotSupportedException.class,HttpMediaTypeNotSupportedException.class,HttpMediaTypeNotAcceptableException.class})

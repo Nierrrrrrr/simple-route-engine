@@ -188,13 +188,16 @@ PY
         self.fake_gate(change=lambda r:r['checks'][0].update(evidence='../outside.log'));self.failure(lambda:run_gate(self.root,'M0',self.base))
     def test_wrapper_refuses_reused_evidence(self):
         self.fake_gate();run_gate(self.root,'M0',self.base);self.failure(lambda:run_gate(self.root,'M0',self.base))
-    def test_real_dispatcher_future_phases_fail(self):
+    def test_final_dispatcher_missing_handoff_fails_before_cumulative(self):
         import subprocess
-        for phase in fixed.PHASES[6:]:
+        for phase in fixed.PHASES[7:]:
             env=dict(os.environ,ROUTE_SOURCE_FINGERPRINT='a'*64)
+            env.pop('ROUTE_FINAL_HANDOFF',None);env.pop('ROUTE_FINAL_HANDOFF_RECEIPT',None)
+            env['ROUTE_RUN_ID']='synthetic-validator-only'
             p=subprocess.run(['bash',str(ROOT/'scripts/verify-phase.sh'),phase,str(self.base)],cwd=ROOT,env=env,capture_output=True,text=True)
-            self.assertEqual(p.returncode,3,p.stdout+p.stderr)
-            self.assertIn('NOT_IMPLEMENTED',p.stderr)
+            self.assertEqual(p.returncode,2,p.stdout+p.stderr)
+            self.assertIn('FINAL requires original fresh handoff evidence',p.stderr)
+            self.assertFalse((self.base/'m6').exists())
     def test_m1_missing_real_integration_fails(self):
         from foundation_gate import validate_m1_reports
         report=self.base/'junit/TEST-DefinitionRulesTest.xml';report.parent.mkdir(parents=True)
@@ -325,6 +328,25 @@ PY
         from adapter_gate import validate_m4_reports
         self.m4_validator_fixture();p=self.base/'integration/artifact-survival-proof.json';v=json.loads(p.read_text());v['secretAbsent']=False;p.write_text(json.dumps(v))
         self.failure(lambda:validate_m4_reports(self.base))
+    def m6_proofs(self):
+        p={'databasePortSelection':{'allocator':'Docker','endpoint':'127.0.0.1:34567','databaseEntrypointUsed':False,'probeRemovedBeforeDatabase':True,'retryOnTransferFailure':False},'roles':{'callerDenied':5,'operatorDenied':2,'wrongToken':401,'operationalRead':200,'foreignDecisionRead':404,'operatorCancel':202,'startupRejected':[{'exit':1}]*2},'graceful':{'exit':143,'overlapPids':[2,3],'oldPid':1,'effects':1,'submits':1,'permitGeneration':1},'metrics':{'endpoint':'127.0.0.1:34567','readinessDbOutage':503,'readinessRecoveredSamePid':200,'restartSameEndpoint':True,'auditRecords':1,'values':{'route.queue.depth':1,'route.permits.total':2,'route.permits.noncritical':1,**{'metric'+str(i):0 for i in range(7)}}},'demos':[{'route':'demo-delivery-'+str(i),'state':'SUCCEEDED:0','definitionHash':'a'*64,'pid':10,'aliveAfterCompletion':True} for i in range(1,6)],'demoLifecycle':{'startedPids':[10],'exitBeforeAllCompleted':None},'rbac':{'actualCreateGetDelete':True,'actualDenied':[{'forbidden':True}]*3,'decisions':[{'allowed':x} for x in [True,True,False,False,False]]},'backup':{'source':'a','restored':'b','dumpSha256':'a'*64,'comparisons':[{'source':'x','restored':'x'}]*4}}
+        u={'oldSourceFingerprint':'437f8be7254c3d2685a87b33c5aaaab0191fdca5814ff7834dde2092bfa89fb5','oldRuntimeMode':'EXACT_ACCEPTED_ARTIFACT','oldJarSha256':'0dbeee3eca2ee43e86d9a97bf089263bd007c722f9b8557ee71f1be901ec6072','acceptedJarSha256':'0dbeee3eca2ee43e86d9a97bf089263bd007c722f9b8557ee71f1be901ec6072','oldPid':1,'newPid':2,'versionsBefore':list(map(str,range(1,8))),'versionsAfter':list(map(str,range(1,9))),'definitionsAndBindingsUnchanged':True,'beforeDefinitionRows':'fixture','afterDefinitionRows':'fixture','manualBefore':{'execution':'MANUAL_WAIT:0'},'queuedBefore':{'execution':'QUEUED:0'},'manualAfter':{'execution':'SUCCEEDED:0'},'queuedAfter':{'execution':'SUCCEEDED:0'},'queuedPriority':'LOW','manualPermitGeneration':2}
+        s={'blocked':{'lock_waits':1},'attemptsAfterShutdown':0,'submitsAfterShutdown':0,'exit':143,'stateAfterShutdown':'ADMITTED:1','pid':1,'restartPid':2,'finalState':'SUCCEEDED:0','restartSubmits':1,'restartEffects':1}
+        return p,u,s
+    def test_m6_missing_actual_proof_fails(self):
+        from hardening_gate import validate_reports
+        self.failure(lambda:validate_reports(self.base))
+    def test_m6_each_material_proof_negative_fails(self):
+        from hardening_gate import validate_proofs
+        validate_proofs(*self.m6_proofs())
+        mutations=[lambda p,u,s:p.pop('databasePortSelection'),lambda p,u,s:p['databasePortSelection'].update(allocator='WSL'),lambda p,u,s:p['databasePortSelection'].update(databaseEntrypointUsed=True),lambda p,u,s:p['databasePortSelection'].update(probeRemovedBeforeDatabase=False),lambda p,u,s:p['databasePortSelection'].update(retryOnTransferFailure=True),lambda p,u,s:p['databasePortSelection'].update(endpoint='127.0.0.1:34568'),lambda p,u,s:p['roles'].update(operationalRead=404),lambda p,u,s:p['metrics']['values'].update({'route.permits.total':0}),lambda p,u,s:p['rbac'].update(actualCreateGetDelete=False),lambda p,u,s:p['demos'].pop(),lambda p,u,s:p['demoLifecycle'].update(startedPids=[10,11]),lambda p,u,s:p['demoLifecycle'].update(exitBeforeAllCompleted=-9),lambda p,u,s:p['demos'][0].update(pid=11),lambda p,u,s:p['demos'][0].update(aliveAfterCompletion=False),lambda p,u,s:u.update(oldJarSha256='a'*64),lambda p,u,s:u.update(afterDefinitionRows='changed'),lambda p,u,s:u.update(queuedPriority='CRITICAL'),lambda p,u,s:s.update(attemptsAfterShutdown=1),lambda p,u,s:s.update(restartEffects=2),lambda p,u,s:p['backup'].update(restored='a')]
+        for mutate in mutations:
+            p,u,s=self.m6_proofs();mutate(p,u,s);self.failure(lambda:validate_proofs(p,u,s))
+    def test_m6_empty_skipped_and_missing_checks_fail(self):
+        for xml in ['<testsuite/>','<testsuite><testcase name="m6"><skipped/></testcase></testsuite>']:
+            self.fake_gate(phase='M6',xml=xml);self.failure(lambda:run_gate(self.root,'M6',self.base))
+            shutil.rmtree(self.base)
+        self.fake_gate(phase='M6',change=lambda r:r['checks'].pop());self.failure(lambda:run_gate(self.root,'M6',self.base))
     def test_dispatcher_requires_fingerprint(self):
         import subprocess
         env=dict(os.environ);env.pop('ROUTE_SOURCE_FINGERPRINT',None)
@@ -341,7 +363,9 @@ class JunitResult(unittest.TextTestResult):
 
 if __name__=='__main__':
     dest=pathlib.Path(sys.argv[1]);dest.parent.mkdir(parents=True,exist_ok=True)
-    suite=unittest.defaultTestLoader.loadTestsFromTestCase(GateTests)
+    from test_final_evidence import FinalEvidenceTests
+    from test_final_async import FinalAsyncTests
+    suite=unittest.TestSuite([unittest.defaultTestLoader.loadTestsFromTestCase(GateTests),unittest.defaultTestLoader.loadTestsFromTestCase(FinalEvidenceTests),unittest.defaultTestLoader.loadTestsFromTestCase(FinalAsyncTests)])
     result=unittest.TextTestRunner(verbosity=2,resultclass=JunitResult).run(suite)
     xml=ET.Element('testsuite',{'name':'GateTests','tests':str(result.testsRun),'failures':str(len(result.failures)),'errors':str(len(result.errors)),'skipped':str(len(result.skipped))})
     for _,case in result.cases:xml.append(case)

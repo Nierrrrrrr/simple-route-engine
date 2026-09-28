@@ -1,26 +1,59 @@
 # FINAL ExecPlan
 
-Status: NOT_STARTED. Scope: Fresh acceptance agent, isolated clean rebuild, route6 config-only handoff, fault matrix and fresh independent review.
+Status: CANDIDATE_PREPARATION. Run final-20260926-d831, round3, knowncall56. User authorizes FINAL; M0-M6 historically accepted. Three local corrections maximum, six rounds,64 known agent calls maximum. Round3 repairs AC-041 request envelopes in Java before the fresh handoff; no Java changes are allowed during route6 against the explicitly versioned repaired baseline.
 
-## Requirement to failing scenario
+## Plan and evidence boundaries
 
-| ID | Required proof / failure condition | Planned test |
-|---|---|---|
-| AC-059 | 重新建置並跑所有mandatory suites，無fail/error/skip/NOT_RUN；真實MariaDB與kind/Ansible證據存在。 Failure of any clause must fail the gate. | FinalAcceptanceTest + fresh Reviewer (planned) |
-| AC-060 | fresh session從固定需求反推code/test/故障路徑，P0/P1/P2與mandatory缺口全部關閉，只有有理由的P3可記錄。 Failure of any clause must fail the gate. | FinalAcceptanceTest + fresh Reviewer (planned) |
-| AC-061 | fresh session只讀repo文件，純新增fixture/config發布執行DEMO route6，不改任何引擎Java；前五route回歸。 Failure of any clause must fail the gate. | FinalAcceptanceTest + fresh Reviewer (planned) |
-| AC-062 | 提交前後/回應遺失/落DB前後/parallel/manual/recovery crash點皆有實測，6小時虛擬時鐘與非soak界線清楚。 Failure of any clause must fail the gate. | FinalAcceptanceTest + fresh Reviewer (planned) |
-| AC-063 | 需求ID→測試→命令→原始log/報表→source fingerprint完整，沒有硬編碼success或篡改驗收器。 Failure of any clause must fail the gate. | FinalAcceptanceTest + fresh Reviewer (planned) |
-| AC-064 | ENGINEERING_ACCEPTANCE=PASS只在全部滿足；EXTERNAL_ACCEPTANCE=NOT_RUN、PRODUCTION_DEPLOYMENT=NOT_AUTHORIZED。 Failure of any clause must fail the gate. | FinalAcceptanceTest + fresh Reviewer (planned) |
+1. Snapshot accepted predecessor source, protected31 and all31 engine Java hashes before editing; read actual M6 acceptance and fresh new-run preflight.
+2. Implement FINAL cumulative dispatcher, strict original fresh-handoff import, executable AC059/061/062/063/064 and negative tests. AC060 remains REVIEW-only. Preserve all inherited assertions and real integration suites.
+3. Provide documented fixture/helper startup, synthetic credentials, config-only publication, all-five regression and owned cleanup. Do not author route6 as Builder; correction2 may replay the exact failed externally authored config only as explicitly ineligible Builder regression. New fresh acceptance agent creates its own config from repository instructions after source freeze.
+4. Run focused helper/negative/document tests; finalize STATE/TRACEABILITY/HANDOFF/FINAL_ACCEPTANCE before freeze. Builder result COMPLETE means prepared candidate only.
+5. Root obtains NEW fresh-agent execution and platform-derived controller receipt, then runs all M0-M6 plus FINAL checks using the exact fingerprint. Gate copies and hashes original external handoff evidence; it does not claim those tests reran inside the gate.
+6. Root dispatches another NEW readonly FINAL Reviewer for AC060 and whole-contract inspection. Any correction means new candidate, affected tests and fresh handoff/review. No acceptance claim until root evidence-only result.
 
-## Execution sequence
+## Requirements
 
-1. Read fixed prompt and actual previous-phase evidence.
-2. Add a failing test for each requirement and bounded crash/negative cases.
-3. Implement minimum compatible behavior and update actual file/symbol mappings.
-4. Run this phase and every previous gate, preserve raw logs/JUnit.
-5. Freeze source; fresh reviewer reads code and evidence; fix findings and repeat within six rounds.
-6. Update handoff and STATE without claiming later stages passed.
+| ID | Actual executable or review seam |
+|---|---|
+| AC-059 | final_gate.clean checks real clean verify, independent DBs and new-workspace M6 build after complete M0-M6 execution |
+| AC-060 | NEW readonly Reviewer, fixed prompt09 and review-only verified_requirements; never script-generated PASS |
+| AC-061 | New agent authors fixture; final_handoff actual six API executions; final_evidence rejects stale/missing/tampered/Java-changed/five-missing evidence |
+| AC-062 | final_gate.FAULT_CASES resolves exact successful inherited crash/atomic/parallel/manual/recovery/timing cases; no six-hour soak claim |
+| AC-063 | Original reports/raw commands/checks/protected checks and exact source fingerprint; imported handoff hash manifest/controller identity receipt |
+| AC-064 | CANDIDATE/NOT_PASS source checkpoint, external NOT_RUN, production NOT_AUTHORIZED; controller decides final outcome |
 
-Command: `bash scripts/verify-desktop-phase.sh FINAL .evidence/desktop/$ROUTE_RUN_ID/FINAL/round-1/gate`.
-Currently this dispatcher intentionally fails because this phase is unimplemented. No test result exists yet.
+Command after genuine handoff receipt: bash scripts/verify-desktop-phase.sh FINAL .evidence/desktop/$ROUTE_RUN_ID/FINAL/round-3/main-gate-1. Root owns this expensive full run. Fresh handoff/full gate/review are pending at this source checkpoint. Authoritative post-freeze outcomes are under the run evidence directory.
+
+Historical preparation correction1 evidence (run final-20260926-d831/FINAL/round-1): all87 actual gate-validator cases pass, including14 new synthetic FINAL evidence controls; existing DEMO1 real API trace smoke1 and actual redirect/userinfo boundary2 pass, no failures/errors/skips. Documents were checked4 cases and are rechecked after this note in documents-final. The15 fault-case lookup uses historical accepted M6 reports only. Builder did not author/execute route6 or run the expensive full FINAL gate. Source freezes after this note; NEW fresh-agent handoff, full root FINAL gate and separate NEW Reviewer remain pending. Prepared Builder COMPLETE is not phase acceptance.
+
+Historical FINAL round1 correction2, Buildercall48: fresh agent47 independently authored a valid sync/parallel-async/conditional-rollout configuration; its actual180s timeout left async WAITING with one submit/effect and permit held. All five regression NOT_RUN after that failure; original evidence and wrapper trailing-CR diagnostic remain under handoff-agent-1. Source/31Java/five examples stayed unchanged. The FINAL-only lifecycle now records actual HTTP submit202, engine WAITING poll202, fixture /complete HTTP200 and later engine terminal poll200. It never writes terminal DB state, weakens180s, or changes shared crash fixtures. Failure/unknown/malformed behavior remains covered. Actual catalog key is playbookRef runner, backing playbook probe. Replay the exact failed config under explicit Builder regression mode, which cannot satisfy AC061; new independent handoff-agent-2 must author its own config after candidate-freeze-correction2.json. New full gate and separate Reviewer remain required.
+
+Historical correction2 preparation (Builder call48): validators-correction2.xml records92 passing cases (73 inherited controls,16 FINAL evidence controls,3 real loopback HTTP lifecycle/fault tests), zero failures/errors/skips. The exact unchanged handoff-agent-1/demo6.json and all five originals passed6 real API executions under builder-regression-correction2; its sealed proof is BUILDER_REGRESSION_NOT_ACCEPTANCE and cannot satisfy independent AC061. One async operation has observed submit202, WAITING poll202, real completion HTTP200 and later terminal poll200; cleanup completed. Shared crash fixtures and all31 engine Java files remain unchanged. The initial19 focused tests also passed. Current document checks are recorded in documents-correction2 after these notes. Candidate-freeze-correction2.json supersedes only preparation readiness; original failed fresh-agent evidence and initial freeze/result remain immutable. NEW agent49 must independently author handoff-agent-2 after this freeze; full root main-gate-1 and a separate NEW Reviewer remain pending. FINAL remains CANDIDATE, NOT_PASS; no external or production acceptance.
+
+FINAL round1 correction3, Builder call50: fresh agent49 actually completed six routes and owned cleanup with zero findings. Controller import failed before receipt or full gate because two genuine successful readiness command logs were empty. Original handoff-agent-2/execution and its185-file manifest remain untouched. Only auxiliary fixture/raw-<number>-<label>.log outputs may now be zero bytes, with nonempty paired command/exit and unchanged exact SHA, manifest, path and symlink checks. Required proof/config/API/stdout/JUnit artifacts stay nonempty. The real sealed tree is tested against its explicitly historical source, not accepted for this changed candidate. New handoff-agent-3 by fresh agent51, full main-gate-1 and a separate Reviewer remain required after candidate-freeze-correction3.json. Three local corrections are now used in FINAL round1; further correction requires a new outer round. FINAL remains CANDIDATE/NOT_PASS.
+
+Historical FINAL round1 correction3 focused results: all94 validators passed (73 inherited controls,18 FINAL evidence controls,3 real HTTP lifecycle/fault tests), zero failures/errors/skips. Empty auxiliary log acceptance still rejects changed SHA and absent command-exit evidence; resealed empty semantic artifacts are rejected. Historical-import-correction3.json records successful validation of the untouched185-file actual agent49 tree against its historical fingerprint, retaining both zero-byte readiness logs and unchanged proof SHA. This is importer regression only, not current-candidate AC061. Documents are rechecked in documents-correction3 after these notes. Protected31 and engine Java31 remain unchanged. New immutable candidate-freeze-correction3.json and builder-result-correction3.json supersede preparation readiness only. Fresh agent51 must create handoff-agent-3 on the new fingerprint; cumulative main-gate-1 and separate new Reviewer remain pending. No source writes after freeze; FINAL CANDIDATE/NOT_PASS remains truthful.
+
+## FINAL round3 envelope security repair and fresh handoff boundary
+
+Round1 review found AC-041 input/definition credential persistence. Round2 repaired that gap and completed an actual415-case/35-report/63-check gate plus fresh agent54. Independent Reviewer55 then found configured credentials persisted through initial Idempotency-Key and X-Request-ID in decisions/audit and version requestId in audit. Round2 is CHANGES_REQUIRED; all round1/round2 evidence and both older Java baselines remain immutable.
+
+Round3 Builder call56 extends PersistenceGuard to initial input/key/requestId, draft/publish requestId, edit old and replacement definition contexts, withdrawal selected draft, and metadata name/requestId or deletion against the affected route's existing versions. It reads only referenced REST credentials, including rollback/notification refs, outside DB transactions; no unrelated credential stores are enumerated. Fixed DSL/envelope metadata and deployed reference identifiers are not business literals. Exact version-context and envelope digests are rechecked under existing pool/route/execution locks before row, decision, cursor, permit or audit mutation. Unsafe content returns422; unavailable relevant credentials return503. Detected unsafe or unavailable-validation errors replace incoming requestId in response body and X-Request-ID with a generated correlation ID.
+
+Existing durable accepted/rejected admission decisions replay before preparation errors and persist no replacement envelope; body conflicts remain409. Changed route/version context returns409 for fresh preparation. Credentials represent the pre-transaction read snapshot; external rotation is not atomically locked by MariaDB. A route with no definition has no selected credential context; metadata creation does not inspect unrelated secrets globally.
+
+Version GET/list and historical execution checks retain round2 fail-closed behavior: unsafe definitions/inputs or unavailable relevant credentials stop without rewriting published definitions, dispatching unknown work, or releasing held permits. Restore credential access or publish a clean version and use audited reconciliation for existing operations. This repair does not erase historical data. Typed inputs, scalar output protection, binding drift, original idempotency decisions and lock order remain mandatory regressions.
+
+Engine Java changes are intentional security repairs before fresh handoff. STATE.final_java_baseline schema_version1 selects only .evidence/desktop/final-20260926-d831/baseline/engine-java-security-repair-round3.json. Root creates that immutable map after Builder freeze and records differences from the round2 baseline separately. The resolver rejects older/substituted, missing, traversing and symlinked baselines. New acceptance agent57 independently authors round-3/handoff-agent-1/demo6.json and executes all six routes without Java/source changes against this repaired baseline. Builder does not author or execute route6.
+
+Current evidence is .evidence/desktop/final-20260926-d831/FINAL/round-3. After builder-source-freeze.json, root creates candidate-freeze.json and the Java baseline, obtains agent57's handoff, seals fresh-handoff-receipt.json, runs main-gate-1, then dispatches new Reviewer58. These steps remain pending. ENGINEERING_ACCEPTANCE=NOT_PASS; EXTERNAL_ACCEPTANCE=NOT_RUN; PRODUCTION_DEPLOYMENT=NOT_AUTHORIZED. Builder COMPLETE means preparation only.
+
+## Round3 preparation verification (Builder call56)
+
+security/focused-all contains216 actual testcase elements in13 reports (24 units,192 integration cases including18 PersistenceGuardIT); zero failure/error/skip. security/adapter-boundaries contains25 cases in4 reports (10 units,15 real REST/MariaDB/kind integration cases); zero failure/error/skip. Both test runs preserve source fingerprints and complete owned cleanup. validators.xml contains95 passing cases, including strict round3 baseline selection and stale document negatives. Final document/state/protected31 checks are recorded in documents-final and preparation-integrity.json after these notes.
+
+security/envelope-repro reproduces the exact review leak with the unchanged round2 JAR/source. security/envelope-green-2 is authoritative repaired-JAR evidence:15 real API negatives return422, all route/version/execution/admission/audit/pool snapshots unchanged, response body and headers contain no configured credential, normal admission/replay passes, zero external submits, cleanup complete, unchanged source. Actual source/JAR hashes are in each proof; final documentation-only notes follow those runs.
+
+Two of three local correction slots are used: initial envelope implementation; then explicit replacement of the filter's pre-set response header after focused-1 caught4 failures among42 tests (0 errors/skips). Focused-2 then passed42/6 reports. All original assertions remain. First green probe's top-level variable collision invalidated its source-provenance fields despite successful behavioral checks; its original artifacts remain unchanged, with evidence-only correction explained in security/green-envelope-provenance.md and a complete independent rerun in envelope-green-2. No additional application correction was needed.
+
+Source freezes only after these final notes. Builder COMPLETE covers preparation; root must create the round3 Java baseline and candidate-freeze, obtain fresh agent57's own six-route configuration/execution and receipt, run the cumulative FINAL gate, and obtain separate Reviewer58 approval. No current FINAL PASS, route6 authored by Builder, external acceptance or production authorization is claimed.

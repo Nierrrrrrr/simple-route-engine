@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "sourceFingerprint": "437f8be7254c3d2685a87b33c5aaaab0191fdca5814ff7834dde2092bfa89fb5",
+  "jarSha256": "0dbeee3eca2ee43e86d9a97bf089263bd007c722f9b8557ee71f1be901ec6072",
+  "jarBytes": 48769897,
+  "migrationVersions": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7"
+  ],
+  "manualLeaf": {
+    "id": "bad",
+    "type": "REST",
+    "endpointRef": "flaky",
+    "input": {
+      "value": "old-manual"
+    }
+  },
+  "queuedLeaf": {
+    "id": "queued",
+    "type": "REST",
+    "endpointRef": "sync",
+    "input": {
+      "value": "old-queue"
+    }
+  },
+  "provenance": "Accepted M5 controller gate M5/round-4/main-gate-2; accepted_at 2026-09-25T19:59:22.287751+00:00; release artifact required, never rebuilt from M6.",
+  "historicalSourceCommit": "e136e47",
+  "historicalArchiveSha256": "13639ec177f01a5026cf7d60f12db302b184474937713a7cc9962deb3ff43707"
+}

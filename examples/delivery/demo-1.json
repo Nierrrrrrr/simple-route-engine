@@ -1,0 +1,22 @@
+{
+  "name": "DEMO delivery 1 - synthetic fixture only",
+  "definition": {
+    "routeId": "demo-delivery-1",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "rest",
+          "type": "REST",
+          "endpointRef": "sync"
+        }
+      ]
+    }
+  },
+  "input": {}
+}

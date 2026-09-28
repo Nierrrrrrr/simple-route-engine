@@ -16,7 +16,7 @@ gets a fresh operation UUID/generation; observation/transport uses the existing 
 request must have direction ROLLBACK and a distinct operation, rather than borrowing a forward key.
 No DB fencing scheme revokes an already transmitted HTTP request or guarantees exactly-once side effects.
 
-M4 candidate implementations (fresh review required):
+Implemented adapters (historically accepted in M4/M5; new changes require the current cumulative gate and fresh review):
 - adapters/AdapterCatalog loads a deployment-owned JSON file selected by route.adapters.config.
 - adapters/RestAdapter implements a bounded JSON operation protocol at controlled endpointRef values.
   POST includes operationId, direction, operationGeneration and input; GET /{operationId} observes.
@@ -28,11 +28,11 @@ M4 candidate implementations (fresh review required):
   catalog hash, namespace, kind and name re-{operationId}. Observe checks UID and Deployment generation;
   a previously submitted missing resource is UNKNOWN. Failed rollout persists a stop intent before
   requesting deletion, and only absence of both resource and labelled Pods proves its local work stopped.
-  EngineService.requestCancel is an internal running-permit seam; public recovery authorization is M5.
+  EngineService.requestCancel is an internal running-permit seam; public cancel/recovery uses api.RecoveryController with operator/admin authorization.
 - config/runner contains real synchronous localhost playbooks and an Ansible Runner image context.
   Runner uses a complete version lock, file-mounted secrets and a clean environment; rc/status/stdout/
   job_events/command stay on PVC. Full content scans include command, not only stdout or filenames.
-  Successful focused artifact survival is recorded; final acceptance depends on the cumulative gates.
+  Real artifact survival was accepted through M5; rerun cumulative gates for any new adapter change.
   Job backoffLimit=0 reduces overlapping retry layers but Kubernetes can still start a Job more than once.
 
 Document an adapter's controlled references, immutable artifact/digest, terminal status, cancellation,

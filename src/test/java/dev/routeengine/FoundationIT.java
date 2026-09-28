@@ -45,7 +45,7 @@ class FoundationIT {
  @Test void AC006_emptyDatabaseFlywayUsesRealMariaDbInnoDb(){
    assertTrue(db.queryForObject("SELECT VERSION()",String.class).contains("MariaDB"));
    assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type='BASE TABLE' AND engine <> 'InnoDB'",Integer.class));
-   assertEquals(List.of("1","2","3","4","5","6","7"),db.queryForList("SELECT version FROM flyway_schema_history WHERE success=1 ORDER BY installed_rank",String.class));
+   assertEquals(List.of("1","2","3","4","5","6","7","8"),db.queryForList("SELECT version FROM flyway_schema_history WHERE success=1 ORDER BY installed_rank",String.class));
    for(String table:List.of("routes","route_versions","executions","admission_requests","step_runs","step_attempts","execution_events","scheduler_pool"))
     assertEquals(1,db.queryForObject("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?",Integer.class,table));
  }

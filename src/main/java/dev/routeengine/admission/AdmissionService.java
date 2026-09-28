@@ -19,7 +19,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 /** All permit/config/queue mutations serialize on the database pool row, never JVM locks. */
 @Service
 public class AdmissionService {
+ @org.springframework.beans.factory.annotation.Autowired private PersistenceGuard persistence;
  public static final String SCOPE="POST /executions";
+ @org.springframework.beans.factory.annotation.Autowired private dev.routeengine.engine.ClaimLifecycle lifecycle;
+ private boolean stopping(){return lifecycle!=null&&lifecycle.stopping();}
+
  public record Request(@NotBlank @Pattern(regexp="[a-z][a-z0-9-]{0,63}") String routeId,
    @Min(1) Integer routeVersion,@NotNull @Pattern(regexp="CRITICAL|HIGH|NORMAL|LOW") String priority,
    @NotNull @Pattern(regexp="QUEUE|NOW_OR_REJECT") String admissionMode,@NotNull JsonNode input){}
@@ -64,15 +68,26 @@ public class AdmissionService {
   if(key==null||!key.matches("[A-Za-z0-9._:-]{1,128}")||request.input()==null||!request.input().isObject())throw ApiProblem.invalid();
   String serialized=canonical.canonical(json.valueToTree(request));if(serialized.getBytes(StandardCharsets.UTF_8).length>262144)throw ApiProblem.invalid();
   String hash=canonical.hash(json.valueToTree(request));String id=identity(actor,key);
+  var envelope=persistence.envelope(request.input(),key,requestId);
+  RouteRegistry.Version selected=null;PersistenceGuard.Prepared checked=null;ApiProblem preparationError=null;
+  // An already durable decision replays even after route disablement or credential unavailability.
+  if(db.queryForList("SELECT id FROM admission_requests WHERE id=?",id).isEmpty())try{
+   selected=routes.resolveForNewExecution(request.routeId(),request.routeVersion());
+   checked=persistence.prepare(selected.definition(),persistence.bound(selected.routeId(),selected.version()),envelope);
+  }catch(ApiProblem invalid){preparationError=invalid;}
+  final var prepared=checked;final var expectedVersion=selected;final var error=preparationError;
   return tx.execute(s->{
-   Pool pool=lockPool();
+   Pool pool=lockPool();if(stopping())throw new ApiProblem(503,"STOPPING","Application is stopping");
    var replay=db.queryForList("SELECT request_hash,response_json FROM admission_requests WHERE principal=? AND operation_scope=? AND idempotency_key=?",actor,SCOPE,key);
    if(!replay.isEmpty()){
     if(!hash.equals(replay.getFirst().get("request_hash")))throw new ApiProblem(409,"IDEMPOTENCY_CONFLICT","Idempotency key belongs to different request content");
     var original=parse((String)replay.getFirst().get("response_json"));return new Result(original.path("decision").asText().equals("REJECTED")?409:202,original);
    }
+   if(error!=null)throw error;
    // Registry mutation only locks route and never subsequently takes pool: pool -> route is acyclic.
    var version=routes.lockForNewExecution(request.routeId(),request.routeVersion());
+   if(expectedVersion==null||expectedVersion.version()!=version.version())throw ApiProblem.conflict();
+   persistence.recheck(prepared,version.definition(),persistence.bound(version.routeId(),version.version()),envelope);
    canonical.validateValue(version.definition().path("inputSchema"),request.input());
    String execution=UUID.randomUUID().toString();boolean queue=request.admissionMode().equals("QUEUE");
    Choice chosen=queue?null:choose(pool,new Head(id,execution,request.priority()));
@@ -98,8 +113,12 @@ public class AdmissionService {
   try{return new QueueProtection(choice.head.requestId,guard.prepare(choice.head.executionId,q.incidentId(),q.stepId(),null,json.valueToTree(q),(String)request.get("principal"),(String)request.get("idempotency_key"),choice.head.requestId),null);}
   catch(ApiProblem invalid){if(invalid.status()>=500)throw invalid;return new QueueProtection(choice.head.requestId,null,invalid);}
  }
- public String tick(){var protection=prepareQueue();return tx.execute(s->{
-  Pool p=lockPool();Choice chosen=choose(p,null);if(chosen==null)return null;Head h=chosen.head;
+ public String tick(){if(stopping())return null;var protection=prepareQueue();
+  Choice initial=choose(readPool(false),null);PersistenceGuard.Prepared initialPrepared=null;
+  if(initial!=null){var r=db.queryForMap("SELECT recovery_payload FROM admission_requests WHERE id=?",initial.head.requestId);if(r.get("recovery_payload")==null)initialPrepared=persistence.prepareExecution(initial.head.executionId);}
+  final var initialCheck=initialPrepared;
+  return tx.execute(s->{
+  Pool p=lockPool();if(stopping())return null;Choice chosen=choose(p,null);if(chosen==null)return null;Head h=chosen.head;
   var rows=db.queryForList("SELECT * FROM executions WHERE id=? FOR UPDATE",h.executionId);if(rows.isEmpty())throw new IllegalStateException("Queue execution missing");var e=rows.getFirst();
   recovery.lockIncidents(h.executionId);
   var requests=db.queryForList("SELECT * FROM admission_requests WHERE id=? FOR UPDATE",h.requestId);var request=requests.getFirst();
@@ -120,6 +139,8 @@ public class AdmissionService {
    changed(db.update("UPDATE admission_requests SET decision='ADMITTED',state_version=state_version+1 WHERE id=? AND decision='QUEUED'",h.requestId));
    changed(db.update("UPDATE scheduler_pool SET wrr_cursor=? WHERE id=1 AND config_version=?",chosen.nextCursor,p.version));return h.executionId;
   }
+  if(initial==null||!initial.head.requestId.equals(h.requestId))return null;
+  persistence.recheckExecution(initialCheck,h.executionId);
   if(!e.get("state").equals("QUEUED")||((Number)e.get("permit_generation")).longValue()!=0)throw new IllegalStateException("Queue execution incompatible");
   db.queryForList("SELECT id FROM admission_requests WHERE id=? FOR UPDATE",h.requestId);
   changed(db.update("UPDATE executions SET state='ADMITTED',permit_held=TRUE,permit_generation=permit_generation+1,state_version=state_version+1,updated_at=UTC_TIMESTAMP(6) WHERE id=? AND state='QUEUED' AND permit_held=FALSE AND state_version=?",h.executionId,e.get("state_version")));
@@ -135,7 +156,7 @@ public class AdmissionService {
   if(canonical.canonical(json.valueToTree(q)).length()>262144)throw ApiProblem.invalid();
   var prepared=db.queryForList("SELECT id FROM admission_requests WHERE id=?",id).isEmpty()?guard.prepare(execution,q.incidentId(),q.stepId(),null,json.valueToTree(q),actor,key,requestId):null;
   return tx.execute(s->{
-   var pool=lockPool();var rows=db.queryForList("SELECT * FROM executions WHERE id=? FOR UPDATE",execution);if(rows.isEmpty())throw ApiProblem.missing();var e=rows.getFirst();
+   var pool=lockPool();if(stopping())throw new ApiProblem(503,"STOPPING","Application is stopping");var rows=db.queryForList("SELECT * FROM executions WHERE id=? FOR UPDATE",execution);if(rows.isEmpty())throw ApiProblem.missing();var e=rows.getFirst();
    recovery.lockIncidents(execution);
    var previous=db.queryForList("SELECT request_hash,response_json FROM admission_requests WHERE id=? FOR UPDATE",id);
    if(!previous.isEmpty()){
@@ -180,8 +201,9 @@ public class AdmissionService {
   });
  }
  public JsonNode lookup(String actor,String id){var rows=db.queryForList("SELECT response_json FROM admission_requests WHERE id=? AND principal=?",id,actor);if(rows.isEmpty())throw ApiProblem.missing();return parse((String)rows.getFirst().get("response_json"));}
- public JsonNode execution(String actor,String id){
-  var rows=db.queryForList("SELECT e.id,e.route_id,e.route_version,e.priority,e.state,e.state_version,e.permit_held,e.permit_generation,e.lease_generation,v.definition_hash FROM executions e JOIN route_versions v ON v.route_id=e.route_id AND v.version=e.route_version JOIN admission_requests a ON a.execution_id=e.id WHERE e.id=? AND a.principal=? AND a.operation_scope=?",id,actor,SCOPE);
+ public JsonNode execution(String actor,String id){return execution(actor,id,false);}
+ public JsonNode execution(String actor,String id,boolean operationalRead){
+  var rows=db.queryForList("SELECT e.id,e.route_id,e.route_version,e.priority,e.state,e.state_version,e.permit_held,e.permit_generation,e.lease_generation,v.definition_hash FROM executions e JOIN route_versions v ON v.route_id=e.route_id AND v.version=e.route_version JOIN admission_requests a ON a.execution_id=e.id WHERE e.id=? AND (? OR a.principal=?) AND a.operation_scope=?",id,operationalRead,actor,SCOPE);
   if(rows.isEmpty())throw ApiProblem.missing();var r=rows.getFirst();var o=json.createObjectNode();o.put("executionId",id).put("routeId",(String)r.get("route_id")).put("routeVersion",((Number)r.get("route_version")).intValue()).put("priority",(String)r.get("priority")).put("state",(String)r.get("state")).put("stateVersion",((Number)r.get("state_version")).longValue()).put("permitHeld",Boolean.TRUE.equals(r.get("permit_held"))||r.get("permit_held") instanceof Number n&&n.intValue()==1).put("permitGeneration",((Number)r.get("permit_generation")).longValue()).put("leaseGeneration",((Number)r.get("lease_generation")).longValue()).put("definitionHash",(String)r.get("definition_hash"));return o;
  }
  /** Internal engine seam, never a REST force-release. Current DB work must have converged. */

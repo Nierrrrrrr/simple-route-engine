@@ -1,0 +1,140 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "route-engine",
+    "namespace": "ROUTE_NAMESPACE"
+  },
+  "spec": {
+    "replicas": 1,
+    "strategy": {
+      "type": "Recreate"
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "route-engine"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "route-engine"
+        }
+      },
+      "spec": {
+        "serviceAccountName": "route-engine",
+        "automountServiceAccountToken": false,
+        "terminationGracePeriodSeconds": 45,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 1000,
+          "runAsGroup": 1000,
+          "fsGroup": 1000
+        },
+        "containers": [
+          {
+            "name": "engine",
+            "image": "ROUTE_IMAGE_DIGEST",
+            "ports": [
+              {
+                "containerPort": 8080
+              }
+            ],
+            "envFrom": [
+              {
+                "secretRef": {
+                  "name": "route-engine-runtime"
+                }
+              }
+            ],
+            "env": [
+              {
+                "name": "ROUTE_ADAPTERS_CONFIG",
+                "value": "/etc/route/catalog.json"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "250m",
+                "memory": "512Mi"
+              },
+              "limits": {
+                "cpu": "2",
+                "memory": "2Gi"
+              }
+            },
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "readOnlyRootFilesystem": true,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/actuator/health/readiness",
+                "port": 8080
+              },
+              "initialDelaySeconds": 10,
+              "periodSeconds": 5
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/actuator/health/liveness",
+                "port": 8080
+              },
+              "initialDelaySeconds": 30,
+              "periodSeconds": 10
+            },
+            "volumeMounts": [
+              {
+                "name": "logs",
+                "mountPath": "/var/log/route"
+              },
+              {
+                "name": "tmp",
+                "mountPath": "/tmp"
+              },
+              {
+                "name": "catalog",
+                "mountPath": "/etc/route",
+                "readOnly": true
+              },
+              {
+                "name": "adapter-identity",
+                "mountPath": "/run/adapter",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "volumes": [
+          {
+            "name": "logs",
+            "persistentVolumeClaim": {
+              "claimName": "route-engine-logs"
+            }
+          },
+          {
+            "name": "tmp",
+            "emptyDir": {}
+          },
+          {
+            "name": "catalog",
+            "configMap": {
+              "name": "route-engine-catalog"
+            }
+          },
+          {
+            "name": "adapter-identity",
+            "secret": {
+              "secretName": "route-engine-adapter-identity"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

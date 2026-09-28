@@ -1,13 +1,25 @@
 # Executable validation
 
+| Delivery scope | Value |
+|---|---|
+| Candidate phase | FINAL |
+| Accepted phases | M0, M1, M2, M3, M4, M5, M6 |
+| Executable gates | M0, M1, M2, M3, M4, M5, M6, FINAL |
+| Deferred gates | None |
+| Delivery examples | 5 |
+
+M0-M6 are historically accepted on their recorded source fingerprints. FINAL is a candidate until an independent fresh-agent sixth-route exercise, this full gate and a NEW readonly Reviewer pass. The current full entrypoint is below; the controller must first supply the genuine handoff directory and receipt.
+
 Use Linux x86_64 in WSL2 Ubuntu, Python 3.12, Bash, curl and a real Linux Docker daemon.
 No H2 or unavailable-Docker skip fallback exists.
 
 ```bash
-export ROUTE_RUN_ID=desktop-20260924T212931Z
+export ROUTE_RUN_ID=final-20260926-d831
 bash scripts/bootstrap-tools.sh
 source scripts/env.sh
-bash scripts/verify-desktop-phase.sh M1 .evidence/desktop/$ROUTE_RUN_ID/M1/recheck-unique
+export ROUTE_FINAL_HANDOFF=.evidence/desktop/$ROUTE_RUN_ID/FINAL/round-3/handoff-agent-1/execution
+export ROUTE_FINAL_HANDOFF_RECEIPT=.evidence/desktop/$ROUTE_RUN_ID/FINAL/round-3/fresh-handoff-receipt.json
+bash scripts/verify-desktop-phase.sh FINAL .evidence/desktop/$ROUTE_RUN_ID/FINAL/recheck-unique
 ```
 
 scripts/desktop_gate.py imports only protected validator functions, hashes fixed files/source before and
@@ -39,7 +51,7 @@ The fixture cleans only a container whose run ownership label matches, and its o
 
 For unit-only development, `./mvnw -B test` compiles/runs unit tests but is not an M1 gate.
 Integration tests require generated ROUTE_DB_* and ROUTE_TEST_TOKEN from LocalFixture; missing values fail.
-Use the full cumulative gate for acceptance. M4–FINAL remain NOT_IMPLEMENTED and must return nonzero.
+Use the full cumulative gate for acceptance. FINAL requires original fresh-agent handoff evidence plus the controller receipt before it runs the cumulative gate. Missing evidence fails closed.
 
 scripts/test_gate.py retains missing/empty/skip/count-mismatch/fingerprint/AC/protected-file negative tests.
 New requirement tests must be named with the AC prefix, fail when behavior is wrong, and be mapped in
@@ -105,7 +117,7 @@ AdmissionIT additionally covers default 80/20 limits, CRITICAL shared/strict pri
 backlogged admissions 60/30/10, empty class skip, NOW no leapfrog or latent execution, route eligibility
 locks, immutable version/decision, config shrink/audit rollback, principal isolation, permit-generation
 fencing, active/unknown work release refusal, and lock-timeout 503. No six-hour soak or external adapter
-claim is made. M3 coverage follows below; M4–FINAL are not claimed.
+claim is made by these admission-only cases. Engine, adapter, recovery and hardening suites follow below.
 
 
 ## MariaDB fixture verified readiness (M2 round2)
@@ -126,7 +138,7 @@ before Maven in the cumulative gate and write TEST-FixtureStartup.xml. The polic
 fixture safeguards; all admission/transactions remain actual MariaDB/HTTP/JVM tests.
 
 Test-only tools are already installed Ubuntu 24.04 packages, pinned in config/test-tools.json:
-python3-cryptography 41.0.7-4ubuntu0.4 (upstream 41.0.7), openssl 3.0.13-0ubuntu3.11,
+python3-cryptography 41.0.7-4ubuntu0.4 (upstream 41.0.7), openssl 3.0.13-0ubuntu3.15,
 python3 3.12.3-0ubuntu2.1. Python is /usr/bin/python3; cryptography is loaded from
 /usr/lib/python3/dist-packages/cryptography/__init__.py; OpenSSL is /usr/bin/openssl.
 The gate records dpkg binary/source package names and exact versions; differing versions fail rather
@@ -198,7 +210,7 @@ prior identity, generation, atomic rollback, admission and process assertions re
 holding measures the database protocol; it is not a production long transaction or an external I/O path.
 All earlier158 cases rerun cumulatively along with these3; actual final counts come only from gate XML.
 
-## M4 focused evidence, not cumulative acceptance
+## M4 adapter suites and historical focused evidence
 
 RestAdapterTest uses a genuine loopback HttpServer, and RestEngineAcceptance uses an isolated real
 MariaDB plus scripts/adapter_fixture.py HTTP gateway. KubernetesAcceptance requires the explicit
@@ -211,11 +223,11 @@ Round1 focused commands are preserved under .evidence/desktop/desktop-20260924T2
 - run-processes.py invoked scripts/adapter_processes.py::process_acceptance: exit0,3 true SIGKILL/restart cases.
 
 These commands are fixture-backed one-shot checks. They do not invoke the Python outer runner and do
-not replace the missing M4 cumulative dispatcher. Keep the per-command exits, JUnit and resource/crash
-JSON. The Runner failure needs the next outer round; no successful artifact check is inferred from
-image build or Pod startup. All adapter fixture cleanup checks exact run-id and purpose labels.
+not replace the implemented M4 cumulative dispatcher. Keep the per-command exits, JUnit and resource/crash
+JSON. That round1 Runner failure is historical and was fixed before M4 acceptance; no successful artifact
+check is inferred from image build or Pod startup. All adapter fixture cleanup checks exact run-id and purpose labels.
 
-## M4 cumulative gate (current candidate)
+## M4 cumulative adapter layer (historically accepted)
 
 Run the same isolated run environment with PYTHONDONTWRITEBYTECODE=1:
 bash scripts/verify-desktop-phase.sh M4 .evidence/desktop/$ROUTE_RUN_ID/M4/recheck-unique
@@ -223,8 +235,8 @@ bash scripts/verify-desktop-phase.sh M4 .evidence/desktop/$ROUTE_RUN_ID/M4/reche
 adapter_gate.py executes the full M3/M2/M1/M0 gate first. It then starts a new labelled real MariaDB,
 builds current config/runner (all source hashes recorded), verifies image and kind ownership, loads
 the immutable digest, and runs RestAdapterTest/AdapterContractTest plus explicit RestEngineAcceptance/
-KubernetesAcceptance/AdapterBoundaryAcceptance. There is no image-env shortcut in the cumulative gate. M5/M6/FINAL continue
-to return NOT_IMPLEMENTED until their own implementations exist.
+KubernetesAcceptance/AdapterBoundaryAcceptance. There is no image-env shortcut in the cumulative gate.
+Recovery and hardening dispatchers build cumulatively on this layer. FINAL adds strict fresh-handoff import and fault/evidence checks.
 
 The actual HTTP fixture covers sync/202/poll/4xx/5xx/timeouts/response loss, operation dedupe, unknown
 no-query retention, bounded nonrecursive notification and cancel-before-notification-submit. Real kind
@@ -257,7 +269,7 @@ bindings, reject missing/cross-kind refs, and send6 actual HTTP responses carryi
 credentials in nested text/field names. Those responses must remain IN_DOUBT with held permits and no
 persisted secret. New published v2 must explicitly use the new binding. gate-negatives-1 ran41 tests;
 full M0 gate writes their actual JUnit. All earlier true process/kind/Runner/PVC/cancel tests remain.
-Frozen round3/builder-gate-1 plus the controller gate and fresh Reviewer are required for acceptance.
+Those historical M4 round3 artifacts required a controller gate and fresh Reviewer before later M4 acceptance.
 Round2 builder-gate-1's transient endpoint refusal remains an unexplained historical red; no timeout,
 global environment setting or repeat-until-green strategy was introduced.
 
@@ -272,16 +284,46 @@ scalar-secret-boundary.json records blocked as EXPECTED policy. Actual state, se
 outputAbsent, incident count and downstream attempts determine success. validate_scalar_proof requires
 all16 unique variants and safe11/legitimate5 outcomes, rather than trusting that expected flag.
 GateTests adds4 negatives (45 total): missing scalar proof/variant, leaked value, or rejected legitimate
-control. Run round4/builder-gate-1 at the final freeze; parent full gate and fresh review remain required.
+control. That historical M4 round4 used builder-gate-1 plus parent gate and fresh review. New changes require the current cumulative gate.
 
-M5: bash scripts/verify-desktop-phase.sh M5 EVIDENCE_DIR runs M0-M4 and real RecoveryProcesses. Foundation Maven includes RecoveryIT and exact V1-V7 history migration. scripts/recovery_processes.py can run focused against its own fresh evidence directory; it records actual API races and four HTTP SIGKILL windows. M5 gate validation rejects missing proof, wrong counts, duplicate effects, skipped tests, missing AC or fingerprint mismatches. Source must freeze before the full gate; read actual XML and summary counts.
+M5: bash scripts/verify-desktop-phase.sh M5 EVIDENCE_DIR runs M0-M4 and real RecoveryProcesses. Foundation Maven includes RecoveryIT and exact V1-V8 history migration in the M6 source; the separate old-runtime upgrade fixture requires V1-V7 before upgrade. scripts/recovery_processes.py can run focused against its own fresh evidence directory; it records actual API races and four HTTP SIGKILL windows. M5 gate validation rejects missing proof, wrong counts, duplicate effects, skipped tests, missing AC or fingerprint mismatches. Source must freeze before the full gate; read actual XML and summary counts.
 
 
 M5 round2 adds mandatory RecoveryCancellationIT (one actual HTTP/MariaDB integration case). Its Spring context explicitly uses ROUTE_ENGINE_TEST_DB_URL/USER/PASSWORD and asserts the actual JDBC base URL differs from the foundation endpoint. It calls claim, commits the public cancel command, then executes the existing claim; HTTP POST/DELETE/GET order and held permit across WAITING are checked before STOPPED release. No fresh parallel sibling or following step gets an attempt. M5 gate extracts CANCEL_INTERLEAVING_PROOF from actual JUnit output. All focused runs must supply separate owned main/engine DBs; no copied stale XML is accepted as a new execution.
 
 
-RecoveryOutputProtectionIT is mandatory in clean Maven verify and M5 proof validation. It creates only synthetic credential files in JUnit temporary storage and records statuses/booleans, not credential values. HTTP and DB snapshots supply rejection/no-mutation evidence. Its normal controls include required string output with ordinary nested null and replay during temporary credential-file unavailability. Optional-output absence under null/true/false credentials has separate controls. M5 requires57 cases and exact proof coverage; M0 runs60 validator cases including six new guard proof tests. output-red setup error and output-green-1 compile-only failure have no new executed protection cases; their stale copied artifacts are explicitly NOT_EXECUTED, and only current Maven logs/XML may be counted.
+RecoveryOutputProtectionIT is mandatory in clean Maven verify and M5 proof validation. It creates only synthetic credential files in JUnit temporary storage and records statuses/booleans, not credential values. HTTP and DB snapshots supply rejection/no-mutation evidence. Its normal controls include required string output with ordinary nested null and replay during temporary credential-file unavailability. Optional-output absence under null/true/false credentials has separate controls. M5 requires57 cases and exact proof coverage; that historical revision ran60 validator cases including six new guard proof tests. output-red setup error and output-green-1 compile-only failure have no new executed protection cases; their stale copied artifacts are explicitly NOT_EXECUTED, and only current Maven logs/XML may be counted.
 
-M5 round4 replaces the crash fixture observation boundary after a real red showed normal lease re-claim between completed snapshot and SIGKILL. All source callers use scripts/crash_boundary.py, verify exact owned process identities/all stopped threads, bound the resume/drain transition, and save raw DB activity and monotonic order. The single consistent snapshot retains all original fields and before==after_kill. M5 has9 real RecoveryProcesses cases, including the four original windows and a deliberately blocked real DB transaction that must resume/drain before a valid snapshot; evidence is boundaryDrain plus per-execution crash-boundary files. GateTests now70, including10 boundary/transition negatives. Current frozen candidate evidence is M5/round-4; earlier counts are historical. Full cumulative gate must rerun all affected M3/M4/M5 process paths.
+M5 round4 replaces the crash fixture observation boundary after a real red showed normal lease re-claim between completed snapshot and SIGKILL. All source callers use scripts/crash_boundary.py, verify exact owned process identities/all stopped threads, bound the resume/drain transition, and save raw DB activity and monotonic order. The single consistent snapshot retains all original fields and before==after_kill. M5 has9 real RecoveryProcesses cases, including the four original windows and a deliberately blocked real DB transaction that must resume/drain before a valid snapshot; evidence is boundaryDrain plus per-execution crash-boundary files. That M5 revision had70 GateTests, including10 boundary/transition negatives. The accepted historical M5 evidence is M5/round-4; these counts are historical. Full cumulative gate must rerun all affected M3/M4/M5 process paths.
 
-M5 round4 correction2 adds initial-schema TLS seam:25 startup tests (previous16 plus7 policy/proof negatives and2 real MariaDB cases). Future certificate installed only in fresh unused fixture after SELECT1; schema COUNT must pass with TLS validation within same90s deadline. Expired fails without initialization. M1 validates actual names, peer SHA and proof. Six natural nonreproductions with clock backsteps do not establish original cause. Current authority is round4/builder-freeze-correction2.json and builder-gate-2; earlier337-case gate/root pre-Maven TLS failure historical.
+M5 round4 correction2 adds initial-schema TLS seam:25 startup tests (previous16 plus7 policy/proof negatives and2 real MariaDB cases). Future certificate installed only in fresh unused fixture after SELECT1; schema COUNT must pass with TLS validation within same90s deadline. Expired fails without initialization. M1 validates actual names, peer SHA and proof. Six natural nonreproductions with clock backsteps do not establish original cause. Historical M5 authority is round4/builder-freeze-correction2.json and builder-gate-2; earlier337-case gate/root pre-Maven TLS failure historical.
+
+## M6 suites
+
+scripts/hardening_processes.py executes real role APIs, graceful/overlapping JVMs, nonzero metrics vs SQL, DB outage readiness, five real DEMOs, restricted Kubernetes API probes and separate DB dump/restore. scripts/hardening_shutdown.py holds a real pool-row lock across SIGTERM and requires zero attempts/submits after shutdown begins; old M5 reproduces the failure. scripts/hardening_upgrade.py uses the byte-pinned accepted M5 artifact or checksum-verified archived historical source from config/upgrade with explicitly different provenance modes. scripts/hardening_build.py creates a new workspace and fixed-base executable image. scripts/hardening_gate.py runs M5 cumulatively before these suites and validates proof content. Actual XML determines counts. No full-pass conclusion follows from a focused suite or package-only build.
+
+HardeningTest verifies role negatives/rotation and catalog rejection; existing RestAdapterTest retains actual HTTP redirect/credential, body bound and output checks. FoundationIT now asserts exact migrations1..8 rather than1..7 because V8 is additive; all previous migration tests remain. The original M5 57-case output protection and nine process crash cases remain mandatory. The FINAL dispatcher requires fresh handoff evidence and then executes every earlier gate.
+
+M6 fixture isolation: HardeningFixture first asks a run-owned Docker sleep-only probe to allocate a loopback port, cleans that probe after checking ownership, then creates MariaDB on the same explicit port. WSL availability alone does not establish Docker Desktop host availability; a transfer collision is an error, not a retry. This preserves the same JDBC endpoint across actual stop/start and proves the same JVM readiness503 then200. Inherited M0-M5 fixtures retain their original dynamic mappings. Round1 published new-port refusal was not reproduced by the diagnosis and is not claimed explained by stale-JVM URL alone.
+
+Current document consistency checks in scripts/hardening_documents.py compare the scope tables and default gate commands with STATE, real dispatcher arms, examples and the actual resolve API. Mutation controls reject an obsolete default phase, omitted executable gates, a future-work DEMO claim and a future resolution claim. They complement manual semantic review; they do not establish external acceptance.
+
+M6 AC058 uses one scheduler+engine JVM, with admission enabled before publishing/submitting all five DEMOs. Each record includes the same live PID and durable terminal snapshot; Kubernetes summaries retain Job/Deployment identity/outcomes. This happy-path suite does not inject process crashes between admission and completion. All dedicated SIGKILL, unknown-outcome, SIGTERM and overlap suites remain mandatory. On DEMO failure, bounded execution/attempt/incident and Kubernetes identity/status diagnostics are captured before owned cleanup. A lost submit acknowledgement never authorizes resubmit merely because a Job is absent.
+
+## FINAL executable gate and independent handoff
+
+Read ADD_ROUTE for the complete fresh-agent configuration and fixture workflow. Set ROUTE_FINAL_HANDOFF to the original sealed execution directory and ROUTE_FINAL_HANDOFF_RECEIPT to the controller's external receipt before running FINAL. Missing evidence fails before cumulative execution. final_evidence.py validates exact proof/receipt shape, same run/source/Java/example hashes, artifact containment/hash manifest, six distinct original API executions and matching no-skip JUnit. Gate evidence labels imported cases prior external execution, preserves original hashes and records the handoff JAR separately from later rebuilt JARs.
+
+final_gate.py then runs the complete M0-M6 gate. It verifies actual clean Maven verify/new work directory build and independent DB isolation, resolves15 fault/timing scenarios to exact successful JUnit names, and binds reports/commands/checks to the frozen source. AC060 is REVIEW-only and absent from executable checks; the separate new Reviewer confirms it. test_final_evidence.py adds synthetic validator controls for missing/stale/tampered evidence, controller identity, Java/examples mutation, missing original routes, mismatched counts, skipped XML, path escapes, false API success and incomplete fault coverage. These synthetic tests are validator tests, never engine integration or fresh-agent execution.
+
+Source FINAL_ACCEPTANCE remains CANDIDATE/NOT_PASS. The final controller result under the run evidence directory is the acceptance authority after gate plus review. No production credentials, enterprise acceptance or six-hour soak is implied. All prior mandatory assertions and real fixtures remain required.
+
+Historical correction2 preparation (Builder call48): validators-correction2.xml records92 passing cases (73 inherited controls,16 FINAL evidence controls,3 real loopback HTTP lifecycle/fault tests), zero failures/errors/skips. The exact unchanged handoff-agent-1/demo6.json and all five originals passed6 real API executions under builder-regression-correction2; its sealed proof is BUILDER_REGRESSION_NOT_ACCEPTANCE and cannot satisfy independent AC061. One async operation has observed submit202, WAITING poll202, real completion HTTP200 and later terminal poll200; cleanup completed. Shared crash fixtures and all31 engine Java files remain unchanged. The initial19 focused tests also passed. Current document checks are recorded in documents-correction2 after these notes. Candidate-freeze-correction2.json supersedes only preparation readiness; original failed fresh-agent evidence and initial freeze/result remain immutable. NEW agent49 must independently author handoff-agent-2 after this freeze; full root main-gate-1 and a separate NEW Reviewer remain pending. FINAL remains CANDIDATE, NOT_PASS; no external or production acceptance.
+
+FINAL round1 correction3, Builder call50: fresh agent49 actually completed six routes and owned cleanup with zero findings. Controller import failed before receipt or full gate because two genuine successful readiness command logs were empty. Original handoff-agent-2/execution and its185-file manifest remain untouched. Only auxiliary fixture/raw-<number>-<label>.log outputs may now be zero bytes, with nonempty paired command/exit and unchanged exact SHA, manifest, path and symlink checks. Required proof/config/API/stdout/JUnit artifacts stay nonempty. The real sealed tree is tested against its explicitly historical source, not accepted for this changed candidate. New handoff-agent-3 by fresh agent51, full main-gate-1 and a separate Reviewer remain required after candidate-freeze-correction3.json. Three local corrections are now used in FINAL round1; further correction requires a new outer round. FINAL remains CANDIDATE/NOT_PASS.
+
+Current correction3 focused results: all94 validators passed (73 inherited controls,18 FINAL evidence controls,3 real HTTP lifecycle/fault tests), zero failures/errors/skips. Empty auxiliary log acceptance still rejects changed SHA and absent command-exit evidence; resealed empty semantic artifacts are rejected. Historical-import-correction3.json records successful validation of the untouched185-file actual agent49 tree against its historical fingerprint, retaining both zero-byte readiness logs and unchanged proof SHA. This is importer regression only, not current-candidate AC061. Documents are rechecked in documents-correction3 after these notes. Protected31 and engine Java31 remain unchanged. New immutable candidate-freeze-correction3.json and builder-result-correction3.json supersede preparation readiness only. Fresh agent51 must create handoff-agent-3 on the new fingerprint; cumulative main-gate-1 and separate new Reviewer remain pending. No source writes after freeze; FINAL CANDIDATE/NOT_PASS remains truthful.
+
+PersistenceGuardIT uses real HTTP and MariaDB with synthetic credential files. It verifies initial QUEUE/NOW and draft/edit/publish rejection without mutations, decoded literals and typed positives, relevant unavailability, original accepted/rejected replay, actual latest-version pool-lock race, historical claim/queue retention, and the credential-in-transaction prohibition. Credential-free pure checks preserve the unchanged AC028 incident-before-step lock test. The fresh FINAL handoff must use the repaired baseline selected by STATE.final_java_baseline.
+
+FINAL round3 Builder preparation: security/focused-all has216 cases/13 reports, adapter-boundaries25/4, validators95; all pass with zero skips. PersistenceGuardIT has18 true HTTP/MariaDB cases including request key/requestId rejection, every affected registry mutation, unavailable context/replay and actual locked context races. envelope-green-2 records15 packaged-JAR negatives and positive replay with no mutation/response secret. These scoped results precede final document checks and do not replace the fresh agent57, cumulative FINAL gate and Reviewer58. See HANDOFF for preserved failures and the2/3 correction ledger.

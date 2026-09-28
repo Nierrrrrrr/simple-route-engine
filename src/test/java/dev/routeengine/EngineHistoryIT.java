@@ -28,7 +28,7 @@ class EngineHistoryIT {
   var before=db.queryForList("SELECT id,execution_id,step_run_id,kind,status,created_at FROM engine_incidents ORDER BY id");
   var audit=db.queryForList("SELECT * FROM execution_events WHERE execution_id=?",execution);
   Flyway.configure().dataSource(url,user,password).load().migrate();
-  assertEquals(List.of("1","2","3","4","5","6","7"),db.queryForList("SELECT version FROM flyway_schema_history WHERE success=1 ORDER BY installed_rank",String.class));
+  assertEquals(List.of("1","2","3","4","5","6","7","8"),db.queryForList("SELECT version FROM flyway_schema_history WHERE success=1 ORDER BY installed_rank",String.class));
   assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM route_versions WHERE adapter_bindings IS NOT NULL",Integer.class),"Historical publication bindings must never be invented");
   assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM step_attempts WHERE adapter_plan IS NOT NULL",Integer.class),"Historical adapter plans must not be invented");
   assertEquals(0,db.queryForObject("SELECT COUNT(*) FROM executions WHERE cancel_requested=TRUE",Integer.class));

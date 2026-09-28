@@ -29,10 +29,12 @@ public class AdapterCatalog {
   catch(Exception e){throw new IllegalArgumentException("Invalid adapter catalog");}
  }
  private void require(boolean ok){if(!ok)throw new IllegalArgumentException("Invalid adapter catalog");}
+ private void fields(JsonNode n,Set<String> allowed){require(n.isObject());n.fieldNames().forEachRemaining(k->require(allowed.contains(k)));}
  private void validate() throws Exception {
-  require(config.isObject());
+  fields(config,Set.of("endpoints","resources","credentials","kubernetes"));
+  for(String key:List.of("endpoints","resources","credentials","kubernetes"))if(config.has(key))require(config.get(key).isObject());
   for(var e:entries(config.path("endpoints"))) {
-   JsonNode c=e.getValue();URI uri=URI.create(c.path("baseUri").asText());
+   JsonNode c=e.getValue();fields(c,Set.of("baseUri","allowedHost","allowLoopbackHttp","timeoutMillis","maxResponseBytes","credentialRef","query","cancel"));URI uri=URI.create(c.path("baseUri").asText());
    require(e.getKey().matches("[A-Za-z][A-Za-z0-9_.-]{0,127}"));
    require(uri.getHost()!=null&&uri.getUserInfo()==null&&uri.getFragment()==null&&uri.getQuery()==null);
    require(c.path("allowedHost").asText().equals(uri.getHost()));
@@ -44,6 +46,8 @@ public class AdapterCatalog {
   }
   for(var e:entries(config.path("resources"))) {
    JsonNode c=e.getValue();
+   fields(c,Set.of("kind","namespace","image","runId","artifactDigest","pvc","playbook","secretName","imagePullPolicy","progressDeadlineSeconds"));
+   require(e.getKey().matches("[A-Za-z][A-Za-z0-9_.-]{0,127}"));
    require(Set.of("DEPLOYMENT","JOB","ANSIBLE").contains(c.path("kind").asText()));
    require(c.path("namespace").asText().matches("[a-z0-9][a-z0-9-]{0,62}"));
    require(c.path("image").asText().matches(".+@sha256:[a-f0-9]{64}"));

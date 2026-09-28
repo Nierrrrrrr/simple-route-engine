@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Route Engine M5 Durable Execution and Recovery API",
+    "title": "Route Engine Durable Execution and Recovery API",
     "version": "0.5.0",
-    "description": "Implemented registry/version APIs, DB admission, durable execution, configured REST/Kubernetes/Ansible adapters, and audited operator recovery. Local-admin bearer authentication derives the operator identity; caller/operator/admin role hardening remains M6. Production/external acceptance is NOT_RUN and deployment is not authorized. Strict JSON token types, unknown fields and trailing roots reject with 422 before mutation. Unsupported Content-Type is 415, incompatible Accept is JSON 406 before mutation. All errors include UTC timestamp and requestId; optional X-Request-ID is 1-128 A-Z a-z 0-9 . _ : - characters. Admission and recovery Idempotency-Key is principal plus endpoint/execution scoped; replay returns the original immutable decision. QUEUE and NOW_OR_REJECT use the same CRITICAL/FIFO/WRR scheduler and immutable priority/version. NOW means a permit acquired in the transaction, not immediate external work. 409 ADMISSION_REJECTED differs from 503 unknown database outcome: retain the same key on uncertainty. Development simulation and crash hooks require the explicit engine-development profile. Real adapters use controlled immutable catalog bindings; external I/O is outside DB transactions."
+    "description": "Implemented registry/version APIs, DB admission, durable execution, configured REST/Kubernetes/Ansible adapters, and audited operator recovery. Caller/operator/admin bearer hash roles are enforced. Admin retains local-admin identity. Caller may submit/read its own executions, operator may inspect/recover/cancel/resolve any execution, admin also manages routes/config. Admission decision lookups remain principal-scoped. Missing auth refuses startup; forbidden role is403. Health GET probes are unauthenticated; metrics require operator/admin. Production/external acceptance is NOT_RUN and deployment is not authorized. Strict JSON token types, unknown fields and trailing roots reject with 422 before mutation. Unsupported Content-Type is 415, incompatible Accept is JSON 406 before mutation. All errors include UTC timestamp and requestId; optional X-Request-ID is 1-128 A-Z a-z 0-9 . _ : - characters. Admission and recovery Idempotency-Key is principal plus endpoint/execution scoped; replay returns the original immutable decision. QUEUE and NOW_OR_REJECT use the same CRITICAL/FIFO/WRR scheduler and immutable priority/version. NOW means a permit acquired in the transaction, not immediate external work. 409 ADMISSION_REJECTED differs from 503 unknown database outcome: retain the same key on uncertainty. Development simulation and crash hooks require the explicit engine-development profile. Real adapters use controlled immutable catalog bindings; external I/O is outside DB transactions."
   },
   "security": [
     {
@@ -156,6 +156,9 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -168,7 +171,10 @@
             }
           },
           "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       },
       "get": {
         "operationId": "listRoutes",
@@ -317,8 +323,16 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/routes/{routeId}": {
@@ -475,8 +489,16 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       },
       "patch": {
         "operationId": "updateRoute",
@@ -631,6 +653,9 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -643,7 +668,10 @@
             }
           },
           "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       },
       "delete": {
         "operationId": "softDeleteRoute",
@@ -807,8 +835,14 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       }
     },
     "/routes/{routeId}/versions": {
@@ -965,6 +999,9 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -977,7 +1014,10 @@
             }
           },
           "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       },
       "get": {
         "operationId": "listVersions",
@@ -1135,8 +1175,16 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/routes/{routeId}/versions/{version}": {
@@ -1302,8 +1350,16 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       },
       "put": {
         "operationId": "editDraft",
@@ -1467,6 +1523,9 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -1479,7 +1538,10 @@
             }
           },
           "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       },
       "delete": {
         "operationId": "withdrawDraft",
@@ -1652,8 +1714,14 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       }
     },
     "/routes/{routeId}/versions/{version}/publish": {
@@ -1819,6 +1887,9 @@
               }
             },
             "description": "UNSUPPORTED_MEDIA_TYPE: request Content-Type unsupported"
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -1831,7 +1902,10 @@
             }
           },
           "description": "Exactly one JSON object matching this schema. Trailing whitespace is permitted; additional JSON roots or non-whitespace trailing content return 422 before any mutation."
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       }
     },
     "/executions": {
@@ -1984,6 +2058,9 @@
                 "description": "Stable request identity derived from principal/scope/key; conflict may omit this header if validation rejected before dispatch."
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -1995,7 +2072,12 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/executions/{id}": {
@@ -2102,8 +2184,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/executions/{id}/recoveries": {
@@ -2227,9 +2317,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
-        "description": " Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread."
+        "description": " Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread.",
+        "x-roles": [
+          "operator",
+          "admin"
+        ]
       }
     },
     "/executions/{id}/cancel": {
@@ -2353,9 +2450,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
-        "description": " Fresh dispatch linearizes at durable claim commit. Cancel prevents later fresh claims. Already claimed work may still submit with its existing operation identity, retains its original permit, and must reach observed terminal convergence before release. Cancel acceptance and a remote DELETE202 do not prove termination. Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread."
+        "description": " Fresh dispatch linearizes at durable claim commit. Cancel prevents later fresh claims. Already claimed work may still submit with its existing operation identity, retains its original permit, and must reach observed terminal convergence before release. Cancel acceptance and a remote DELETE202 do not prove termination. Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread.",
+        "x-roles": [
+          "operator",
+          "admin"
+        ]
       }
     },
     "/executions/{id}/incidents/{incidentId}/resolve": {
@@ -2487,9 +2591,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
-        "description": " Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread."
+        "description": " Operator text/output is checked against the exact bound credential context before persistence. Unsafe payload returns422 without mutation, including NOW capacity refusal. Missing credential validation returns503 VALIDATION_UNAVAILABLE; unbound/mismatched context fails closed. Original same-key decisions replay without credential reread.",
+        "x-roles": [
+          "operator",
+          "admin"
+        ]
       }
     },
     "/capacity": {
@@ -2587,9 +2698,17 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
-        "description": "Observed snapshot under pool lock, not a reservation."
+        "description": "Observed snapshot under pool lock, not a reservation.",
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/capacity/config": {
@@ -2697,6 +2816,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
         },
         "requestBody": {
@@ -2708,7 +2830,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "admin"
+        ]
       }
     },
     "/admission-requests/{id}": {
@@ -2815,8 +2940,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/admission-requests": {
@@ -2924,8 +3057,16 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
           }
-        }
+        },
+        "x-roles": [
+          "caller",
+          "operator",
+          "admin"
+        ]
       }
     },
     "/executions/{id}/incidents": {
@@ -2973,6 +3114,297 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Authenticated role is not permitted for this operation"
+          }
+        },
+        "x-roles": [
+          "operator",
+          "admin"
+        ]
+      }
+    },
+    "/actuator/health": {
+      "get": {
+        "operationId": "getHealthHealth",
+        "summary": "Unauthenticated minimal health probe",
+        "security": [],
+        "x-roles": [],
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "UP",
+                        "DOWN",
+                        "OUT_OF_SERVICE",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable; readiness includes DB, liveness does not depend on target APIs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "UP",
+                        "DOWN",
+                        "OUT_OF_SERVICE",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/health/liveness": {
+      "get": {
+        "operationId": "getLivenessHealth",
+        "summary": "Unauthenticated minimal health probe",
+        "security": [],
+        "x-roles": [],
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "UP",
+                        "DOWN",
+                        "OUT_OF_SERVICE",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable; readiness includes DB, liveness does not depend on target APIs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "UP",
+                        "DOWN",
+                        "OUT_OF_SERVICE",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/health/readiness": {
+      "get": {
+        "operationId": "getReadinessHealth",
+        "summary": "Unauthenticated minimal health probe",
+        "security": [],
+        "x-roles": [],
+        "responses": {
+          "200": {
+            "description": "Healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "UP",
+                        "DOWN",
+                        "OUT_OF_SERVICE",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Unavailable; readiness includes DB, liveness does not depend on target APIs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "UP",
+                        "DOWN",
+                        "OUT_OF_SERVICE",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/metrics": {
+      "get": {
+        "operationId": "listMetrics",
+        "summary": "List metric names; operator or admin only",
+        "x-roles": [
+          "operator",
+          "admin"
+        ],
+        "responses": {
+          "200": {
+            "description": "Micrometer metric names",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "names": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "names"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Caller role denied"
+          }
+        }
+      }
+    },
+    "/actuator/metrics/{name}": {
+      "get": {
+        "operationId": "readMetric",
+        "summary": "Observe metric; not a capacity reservation",
+        "x-roles": [
+          "operator",
+          "admin"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Micrometer measurement; unavailable DB gauge may be nonfinite/null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "measurements": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "statistic": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "statistic",
+                          "value"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "measurements"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Caller role denied"
+          },
+          "404": {
+            "description": "Unknown metric"
           }
         }
       }

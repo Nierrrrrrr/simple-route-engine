@@ -1,0 +1,22 @@
+{
+  "name": "DEMO delivery 5 - synthetic fixture only",
+  "definition": {
+    "routeId": "demo-delivery-5",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "rollout",
+          "type": "KUBERNETES",
+          "resourceRef": "deployment"
+        }
+      ]
+    }
+  },
+  "input": {}
+}

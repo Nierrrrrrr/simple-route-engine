@@ -20,6 +20,10 @@ import static dev.routeengine.engine.OperationAdapter.*;
  * The database pending rows are the queue; there is no in-memory continuation or event replay. */
 @Service
 public class EngineService {
+ @org.springframework.beans.factory.annotation.Autowired private dev.routeengine.registry.PersistenceGuard persistence;
+ @org.springframework.beans.factory.annotation.Autowired private dev.routeengine.engine.ClaimLifecycle lifecycle;
+ private boolean stopping(){return lifecycle!=null&&lifecycle.stopping();}
+
  public record Work(String executionId,String stepId,String attemptId,long permitGeneration,long leaseGeneration,
                     long stepVersion,boolean observe,Request request){}
  private static final Set<String> TERMINAL=Set.of("SUCCEEDED","FAILED","STOPPED","SKIPPED","CANCELLED");
@@ -180,10 +184,16 @@ public class EngineService {
   changed(db.update("UPDATE executions SET state=?,state_version=state_version+1,next_action_at=(SELECT MIN(next_action_at) FROM step_runs WHERE execution_id=?),updated_at=UTC_TIMESTAMP(6) WHERE id=? AND state_version=?",target,id,id,current.get("state_version")));
  }
  public Work claim(String id){
+  if(stopping())return null;
   if(hooks.stream().anyMatch(h->!h.allowClaim(id)))return null;
+  // Revalidate historical input before any fresh claim or structural snapshot expansion.
+  // Adapter binding drift still follows the existing unknown/identity reconciliation path.
+  if(db.queryForObject("SELECT COUNT(*) FROM executions WHERE id=?",Long.class,id)==0)return null;
+  var protectedInput=persistence.prepareExecution(id);
   return tx.execute(s->{
-   var e=execution(id);if(e==null||!held(e)||!Set.of("ADMITTED","RUNNING","WAITING_EXTERNAL","RETRY_WAIT","PAUSING","RECONCILING","CANCELING","RECOVERING","ROLLING_BACK").contains(e.get("state")))return null;
+   var e=execution(id);if(stopping())return null;if(e==null||!held(e)||!Set.of("ADMITTED","RUNNING","WAITING_EXTERNAL","RETRY_WAIT","PAUSING","RECONCILING","CANCELING","RECOVERING","ROLLING_BACK").contains(e.get("state")))return null;
    var d=definition(e);if(!d.path("engineSemanticsVersion").asText().equals("1"))return null;
+   persistence.recheckExecution(protectedInput,id);
    if(row(id,d.path("root").path("id").asText())==null)add(e,d.get("root"),null,false);
    settle(e);e=db.queryForMap("SELECT * FROM executions WHERE id=?",id);if(!held(e))return null;
    boolean recovering=e.get("recovery_target_step_id")!=null;boolean stopping=recovering?cancelling(e):halt(id);Instant now=dbNow(),domain=clock.instant();

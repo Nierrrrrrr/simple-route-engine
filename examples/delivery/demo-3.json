@@ -1,0 +1,34 @@
+{
+  "name": "DEMO delivery 3 - synthetic fixture only",
+  "definition": {
+    "routeId": "demo-delivery-3",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "parallel",
+          "type": "PARALLEL",
+          "join": "ALL_SETTLED",
+          "branches": [
+            {
+              "id": "left",
+              "type": "REST",
+              "endpointRef": "sync"
+            },
+            {
+              "id": "right",
+              "type": "REST",
+              "endpointRef": "sync"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "input": {}
+}

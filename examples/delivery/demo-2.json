@@ -1,0 +1,49 @@
+{
+  "name": "DEMO delivery 2 - synthetic fixture only",
+  "definition": {
+    "routeId": "demo-delivery-2",
+    "version": 1,
+    "dslVersion": "1",
+    "engineSemanticsVersion": "1",
+    "adapterContractVersion": "1",
+    "root": {
+      "id": "root",
+      "type": "SEQUENCE",
+      "children": [
+        {
+          "id": "choice",
+          "type": "CONDITION",
+          "condition": {
+            "field": "input.deploy",
+            "operator": "EQ",
+            "value": true
+          },
+          "then": {
+            "id": "selected",
+            "type": "REST",
+            "endpointRef": "sync"
+          },
+          "else": {
+            "id": "unselected",
+            "type": "REST",
+            "endpointRef": "sync"
+          }
+        }
+      ]
+    },
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "deploy": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "deploy"
+      ]
+    }
+  },
+  "input": {
+    "deploy": true
+  }
+}

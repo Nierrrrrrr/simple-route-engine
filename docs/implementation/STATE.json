@@ -1,14 +1,16 @@
 {
   "schema_version": 1,
-  "run_id": "desktop-20260924T212931Z",
-  "current_phase": "M5",
-  "status": "CANDIDATE",
+  "run_id": "final-20260926-d831",
+  "current_phase": "FINAL",
+  "status": "CANDIDATE_CHECKPOINT",
   "completed_phases": [
     "M0",
     "M1",
     "M2",
     "M3",
-    "M4"
+    "M4",
+    "M5",
+    "M6"
   ],
   "phase_rounds": {
     "M0": 1,
@@ -16,20 +18,20 @@
     "M2": 2,
     "M3": 4,
     "M4": 4,
-    "M5": 4
+    "M5": 4,
+    "M6": 4,
+    "FINAL": 3
   },
   "agent_calls": {
     "main_sessions": 1,
-    "subagent_calls": 33,
-    "total_known": 34
+    "subagent_calls": 55,
+    "total_known": 56
   },
   "review_status": "NEEDS_FRESH_REVIEW",
   "pending": [
-    "M5",
-    "M6",
     "FINAL"
   ],
-  "evidence_root": ".evidence/desktop/desktop-20260924T212931Z/M5/round-4",
+  "evidence_root": ".evidence/desktop/final-20260926-d831/FINAL/round-3",
   "engineering_acceptance": "NOT_PASS",
   "external_acceptance": "NOT_RUN",
   "production_authorized": false,
@@ -39,7 +41,9 @@
     "M2": 1,
     "M3": 1,
     "M4": 1,
-    "M5": 2
+    "M5": 2,
+    "M6": 2,
+    "FINAL": 2
   },
   "local_corrections_history": {
     "M2-round-1": 3,
@@ -51,7 +55,172 @@
     "M4-round-3": 1,
     "M5-round-1": 3,
     "M5-round-2": 3,
-    "M5-round-3": 3
+    "M5-round-3": 3,
+    "M6-round-1": 3,
+    "M6-round-2": 3,
+    "M6-round-3": 3,
+    "FINAL-round-1": 3,
+    "FINAL-round-2": 3,
+    "FINAL-round-3": 2
   },
-  "requested_stop_after": "M5"
+  "requested_stop_after": "FINAL",
+  "m6_test_status": "ACCEPTED_BY_CONTROLLER_AND_FRESH_REVIEW_ON_PREDECESSOR_SHA",
+  "prior_acceptance": {
+    "checks": 58,
+    "actual_testcases": 369,
+    "copied_baseline": ".evidence/desktop/final-20260926-d831/baseline/M6-ACCEPTED.json",
+    "accepted_at": "2026-09-26T14:16:09.263468+08:00",
+    "reports": 32,
+    "source_fingerprint": "6ce81e55b80c37c44361c3faefee7b1163f075b38d8be89d62f19232b621a512",
+    "evidence": ".evidence/desktop/m6-20260926-d831/M6/ACCEPTED.json",
+    "phase": "M6"
+  },
+  "pending_findings": [
+    "AC-041 implemented with real regressions; independent closure pending",
+    "AC-057 scope/receipt consistency repaired; independent closure pending"
+  ],
+  "correction_ledger": {
+    "M6-round-1": [
+      {
+        "correction": 1,
+        "issue": "Focused auth unit mapper lacked Java time module",
+        "resolution": "Use production-equivalent registered modules; 11 focused unit cases pass."
+      },
+      {
+        "correction": 2,
+        "issue": "Git archive inherited CRLF conversion; extracted source fingerprint differed",
+        "resolution": "Archive with checkout-scoped core.autocrlf=false; exact accepted source fingerprint verified and historical JAR rebuilt."
+      },
+      {
+        "correction": 3,
+        "issue": "Docker context omitted local JDK symlink target",
+        "resolution": "Dedicated image context copies resolved JDK and JAR; verification not reached because latest process suite failed first."
+      }
+    ],
+    "M6-round-2": [
+      {
+        "correction": 1,
+        "issue": "EngineHistoryIT exact migration sequence outdated",
+        "resolution": "Expect exact1..8; all history/legacy assertions retained."
+      },
+      {
+        "correction": 2,
+        "issue": "M6 dynamic DB publish mapping changes across restart; same JVM keeps prior URL",
+        "resolution": "Scope explicit loopback port to HardeningFixture; strengthen proof to same JVM503 then200. Prior new-port handshake refusal remains unreproduced; not claimed explained."
+      },
+      {
+        "correction": 3,
+        "issue": "Demo helper accepted userinfo-shaped URLs and forwarded bearer on HTTP redirect",
+        "resolution": "Exact parsed loopback URL validation and no-redirect opener; real HTTP sink red captured synthetic token, green receives no request."
+      }
+    ],
+    "M6-round-3": [
+      {
+        "correction": 1,
+        "issue": "AC-057 inconsistent current delivery/command/API/demo guidance",
+        "resolution": "Consolidate required docs and add semantic cross-checks against actual dispatcher/STATE/examples/OpenAPI with stale-claim negative controls."
+      },
+      {
+        "correction": 2,
+        "issue": "Rewritten M6 ExecPlan omitted required Status field; existing validator73 suite failed one case",
+        "resolution": "Restore explicit candidate Status; retain assertion and rerun all focused validators in new evidence."
+      },
+      {
+        "correction": 3,
+        "issue": "AC058 happy-path fixture SIGKILLs active engine immediately after each submission; main-gate-1 DEMO4 timed out RECONCILING:1",
+        "resolution": "Controlled real claim-before-submit crash reproduces safe unknown/no Job/no resubmit. Use one live engine+scheduler JVM across five DEMOs, enable admission first, assert PID continuity and terminal snapshots; preserve all dedicated crash suites. Original cleaned incident exact cause remains uncertain."
+      }
+    ],
+    "M6-round-4": [
+      {
+        "issue": "Exact Ubuntu OpenSSL package pin3.0.13-0ubuntu3.11 differs from installed3.0.13-0ubuntu3.15",
+        "resolution": "Local dpkg/apt/changelog provenance recorded; exact patch pin updated with unchanged upstream3.0.13 and unchanged25 startup tests. Focused tests then full root gate and fresh review required. Actual startup25 and validators73 passed without failures/errors/skips; full root gate and fresh review pending.",
+        "correction": 1
+      },
+      {
+        "correction": 2,
+        "resolution": "Real same-port reproduction plus Windows exclusions; Docker sleep-only allocator probe then explicit fixed DB endpoint. Probe ownership cleanup, no transfer retry, same-JVM restart and initialized DB protections retained. Actual real port red/green, six process cases and73 validator cases passed after fix, including same-JVM readiness and five DEMOs; final document recheck and full root gate/review remain evidence authority.",
+        "issue": "WSL-selected explicit port50197 unavailable to Docker Desktop before DB process start"
+      }
+    ],
+    "FINAL-round-1": [
+      {
+        "correction": 1,
+        "issue": "Implement missing FINAL gate and document separate fresh-agent handoff",
+        "resolution": "Strict imported original evidence and controller receipt; all87 validators plus existingDEMO1 trace and2 boundary tests pass. Final document recheck recorded separately. No route6 authored/executed by Builder; full gate and independent review pending."
+      },
+      {
+        "issue": "Independent fresh route uses async; original FINAL harness never drives its explicit completion and ADD_ROUTE misnames Ansible ref",
+        "correction": 2,
+        "resolution": "FINAL-only real HTTP completion after observed WAITING, terminal poll required; runner catalog key corrected. Exact original failed config and five originals passed six actual executions; 92 validators passed including real HTTP lifecycle and unchanged fault/malformed behavior. Builder regression cannot satisfy AC061. New agent49, full gate and fresh review pending."
+      },
+      {
+        "correction": 3,
+        "issue": "Actual sealed handoff contains legitimate zero-byte readiness command output; generic nonempty manifest check rejected it before controller receipt",
+        "resolution": "Only auxiliary fixture/raw command output may be empty with nonempty paired command/exit, unchanged exact hash/path/symlink/manifest checks. Semantic required evidence stays nonempty. Historical proof regression is not current AC061; new fresh agent51 required. Actual94 validators passed; original185-file real tree validated against explicitly historical fingerprint without mutation. Document recheck follows final notes."
+      }
+    ],
+    "FINAL-round-2": [
+      {
+        "correction": 1,
+        "issue": "Reviewer AC-041 initial input and definition configured credential persistence, plus AC-057 stale docs",
+        "resolution": "Shared preparation/recheck guard and real regressions; both unchanged packaged-JAR review probes reproduced; all first8 new IT passed, broader regressions required."
+      },
+      {
+        "correction": 2,
+        "issue": "17 unchanged scalar-output errors from treating public true/false/null endpoint refs as literals; two new test isolation/PROCESSLIST detection failures",
+        "resolution": "Allowlisted business-literal DSL contexts, preserve reference metadata; retire earlier empty test queues and recognize SET STATEMENT-prefixed real pool lock SQL. Exact68 targeted IT plus24units passed. Tighten all historical claims/operator snapshots. No original assertion changed."
+      },
+      {
+        "correction": 3,
+        "issue": "Original AC028 incident-lock test calls credential-free development claim inside transaction; blanket guard threw before lock wait",
+        "resolution": "Reject active transactions only immediately before actual configured credential file read. Credential-free checks are pure. Added credential-in-transaction negative; clean all Java passes with original incident-before-step assertion unchanged."
+      }
+    ],
+    "FINAL-round-3": [
+      {
+        "correction": 1,
+        "issue": "Reviewer selected credential persisted through initial key/requestId and version audit requestId",
+        "resolution": "Exact unchanged round2 JAR red reproduced; extend envelope preparation and locked context rechecks to admission and affected registry mutations."
+      },
+      {
+        "correction": 2,
+        "issue": "Focused1 actual HTTP assertions found four unsafe response header reflections despite correct rejection and safe response bodies",
+        "resolution": "Replace filter pre-set header using HttpServletResponse.setHeader in ApiErrors; focused2 all18 IT and24 unit cases pass, strict body/header assertions unchanged."
+      }
+    ]
+  },
+  "platform_interruption_history": {
+    "exact_operation": "NOT_IDENTIFIED",
+    "cleared": false,
+    "result": "PLATFORM_ERROR_POSSIBLE_CYBERSECURITY_RISK",
+    "provenance": "Round3 candidate-freeze-correction3.json is controller-recorded; stale builder-result.json belongs earlier8ac0 candidate. Round4 handles separately reproduced exact package-pin incompatibility.",
+    "agent_call": 42
+  },
+  "m5_prior_acceptance": {
+    "phase": "M5",
+    "accepted_at": "2026-09-26T03:59:22.287751+08:00",
+    "evidence": "D:/codex/simple-route-engine/.evidence/desktop/desktop-20260924T212931Z/M5/ACCEPTED.json",
+    "source_fingerprint": "437f8be7254c3d2685a87b33c5aaaab0191fdca5814ff7834dde2092bfa89fb5",
+    "actual_testcases_each": 346,
+    "checks": 50,
+    "blocking_findings": 0,
+    "runtime_provenance": ".evidence/desktop/m6-20260926-d831/baseline/m5-runtime/provenance.json"
+  },
+  "final_test_status": "ROUND3_CLEAN_JAVA216_ADAPTER25_VALIDATORS95_EXACT_ENVELOPE15_PASSED; DOCUMENT_STATE_PROTECTED_CHECK_AUTHORITY=preparation-integrity.json; NEW_FRESH_AGENT57_FULL_FINAL_GATE_AND_REVIEW58_PENDING",
+  "final_java_baseline": {
+    "schema_version": 1,
+    "path": ".evidence/desktop/final-20260926-d831/baseline/engine-java-security-repair-round3.json"
+  },
+  "final_round1_review": {
+    "status": "CHANGES_REQUIRED",
+    "path": ".evidence/desktop/final-20260926-d831/FINAL/round-1/reviewer-result.json",
+    "blocking_requirement": "AC-041",
+    "documentation_requirement": "AC-057"
+  },
+  "final_round2_review": {
+    "status": "CHANGES_REQUIRED",
+    "path": ".evidence/desktop/final-20260926-d831/FINAL/round-2/reviewer-result.json",
+    "blocking_requirement": "AC-041"
+  }
 }
