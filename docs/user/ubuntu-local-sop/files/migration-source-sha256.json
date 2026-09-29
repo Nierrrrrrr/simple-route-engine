@@ -1,0 +1,10 @@
+{
+  "V1__foundation.sql": "d872fa7e1e6d97a1fc332fe2f14a7a089fc0638275f7ec829d02e86888744ad9",
+  "V2__admission.sql": "7dc3628e1146c4af09118a28e67e25d9a74aea6eb5018fa659a57b915557d1f1",
+  "V3__engine.sql": "ee6ada21b428d4de39ebd472f15b48e166f05c1e6976658896445bf474e6cd9c",
+  "V4__incident_operation_identity.sql": "5d73aa3b5a8f1f4c5899f51a48d8097a3798b748509b95d4506aa16fd7f82299",
+  "V5__adapter_plan_cancel.sql": "f23af28179680c282ae814bb7a27a92bfb42c0d031077cf57538f58812468706",
+  "V6__published_adapter_bindings.sql": "f3c04208980133049ddb774253699992587efce50df01fd9cfc8ad1324fee7a9",
+  "V7__recovery.sql": "3deef52cb0aa99dd5cb5497ae99d0b2fba03d1aae864dedfc1fbde6f69867cd7",
+  "V8__operations_indexes.sql": "4e903b29afbb30b2a03d943352963b79fdfc52f10e55e84eefae9314aa9659d2"
+}

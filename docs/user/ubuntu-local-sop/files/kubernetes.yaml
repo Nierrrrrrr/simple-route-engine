@@ -1,0 +1,48 @@
+# Change namespace and storageClassName before applying to your test namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: route-engine-sop
+  labels:
+    route-engine.run-id: ubuntu-sop
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: runner-artifacts
+  namespace: route-engine-sop
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: CHANGE_ME_RWX_STORAGE_CLASS
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Example authorization for the *identity in the application kubeconfig*.
+# This is not the Job Pod identity; Job Pods have automountServiceAccountToken=false.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: route-engine-jobs
+  namespace: route-engine-sop
+rules:
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: [get, list, watch, create, delete]
+  - apiGroups: ['']
+    resources: [pods]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: route-engine-jobs
+  namespace: route-engine-sop
+subjects:
+  - kind: User
+    name: CHANGE_ME_KUBECONFIG_USERNAME
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: route-engine-jobs
+  apiGroup: rbac.authorization.k8s.io

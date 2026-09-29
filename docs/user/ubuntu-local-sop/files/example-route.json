@@ -1,0 +1,40 @@
+{
+  "routeId": "ubuntu-rest-ansible-demo",
+  "version": 1,
+  "dslVersion": "1",
+  "engineSemanticsVersion": "1",
+  "adapterContractVersion": "1",
+  "inputSchema": {
+    "type": "object",
+    "properties": {"runAnsible": {"type": "boolean"}},
+    "required": ["runAnsible"],
+    "additionalProperties": false
+  },
+  "root": {
+    "id": "root", "type": "SEQUENCE",
+    "children": [
+      {
+        "id": "prepare", "type": "REST", "endpointRef": "sop.rest",
+        "input": {"allowed": {"$ref": "input.runAnsible"}, "message": "Check requested branch"},
+        "outputSchema": {
+          "type": "object",
+          "properties": {"allowed": {"type": "boolean"}, "message": {"type": "string"}},
+          "required": ["allowed", "message"], "additionalProperties": false
+        }
+      },
+      {
+        "id": "decision", "type": "CONDITION",
+        "condition": {"field": "steps.prepare.allowed", "operator": "EQ", "value": true},
+        "then": {"id": "runProbe", "type": "ANSIBLE", "playbookRef": "sop.probe"},
+        "else": {
+          "id": "recordSkip", "type": "REST", "endpointRef": "sop.rest",
+          "input": {"allowed": false, "message": "Ansible was not requested"}
+        }
+      },
+      {
+        "id": "finish", "type": "REST", "endpointRef": "sop.rest",
+        "input": {"message": "Route finished"}
+      }
+    ]
+  }
+}
